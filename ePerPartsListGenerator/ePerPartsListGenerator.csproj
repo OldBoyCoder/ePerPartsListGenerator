@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Catalogue.cs" />
     <Compile Include="CatalogueRendererLandscape.cs" />
+    <Compile Include="Cliche.cs" />
     <Compile Include="Drawing.cs" />
     <Compile Include="Part.cs" />
     <Compile Include="Program.cs" />
