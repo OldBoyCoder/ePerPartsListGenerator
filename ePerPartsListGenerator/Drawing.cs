@@ -2,6 +2,19 @@
 
 namespace ePerPartsListGenerator
 {
+    class Cliche
+    {
+        public string PartNo;
+        public string Description; // The name of the parent part actually
+        public string ClicheCode;
+        public string ImagePath;
+        public List<Part> Parts;
+
+        public Cliche(string clicheCode)
+        {
+            ClicheCode = clicheCode;
+        }
+    }
     class Drawing
     {
         public string Description;
@@ -17,5 +30,6 @@ namespace ePerPartsListGenerator
         internal List<string> ModificationList = new List<string>();
         internal string Modifications;
         internal string ValidFor;
+        internal Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
     }
 }

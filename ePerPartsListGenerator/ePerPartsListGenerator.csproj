@@ -51,10 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Catalogue.cs" />
-    <Compile Include="CatalogueRendererPortrait.cs" />
     <Compile Include="CatalogueRendererLandscape.cs" />
     <Compile Include="Drawing.cs" />
-    <Compile Include="LegendEntry.cs" />
     <Compile Include="Part.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

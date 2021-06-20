@@ -9,7 +9,8 @@ namespace ePerPartsListGenerator
         public List<string> Groups;
         public string Description;
         public string CatCode;
-        public Dictionary<string, string> Legend = new Dictionary<string, string>();
+        public Dictionary<string, string> AllModifications;
+        public Dictionary<string, string> AllVariants;
         internal string ImagePath;
 
         public void PopulateCatalogue(string CatalogueCode)
@@ -18,6 +19,8 @@ namespace ePerPartsListGenerator
             var rep = new Repository();
             rep.Open();
             rep.GetCatalogue(this, CatCode);
+            AllModifications = rep.GetAllModificationLegendEntries(this);
+            AllVariants = rep.GetAllVariants(this);
             Drawings = rep.GetDrawings(this, CatalogueCode);
             Groups = Drawings.Select(x => x.GroupDesc).Distinct().ToList();
         }

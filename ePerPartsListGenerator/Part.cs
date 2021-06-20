@@ -10,5 +10,7 @@ namespace ePerPartsListGenerator
         public List<string> Modification;
         public List<string> Compatibility;
         public int RIF;
+        public string Notes;
+        internal string ClicheCode;
     }
 }
