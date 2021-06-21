@@ -214,6 +214,7 @@ namespace ePerPartsListGenerator
                         }
                     }
                     p.Notes = dr.GetString(6);
+                    p.ClicheCode = "";
                     item.Value.Parts.Add(p);
 
                 }

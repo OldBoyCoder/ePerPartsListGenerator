@@ -39,13 +39,13 @@ namespace ePerPartsListGenerator
             doc = new PdfDocument();
 
             // use this dummy first page to work out some metrics
-            // To avoid deleting it, we'll use it as a title page somehow.
+            // To avoid deleting it, we'll use it as a title page
             page = doc.AddPage();
             gfx = XGraphics.FromPdfPage(page);
 
             page.Size = PdfSharp.PageSize.A4;
             page.Orientation = PdfSharp.PageOrientation.Portrait;
-            AddPageNumber();
+            AddPageFooter();
 
             spaceForGroups = GetHeight(page, 90.0);
             punchMargin = GetWidth(page, 8);
@@ -61,11 +61,11 @@ namespace ePerPartsListGenerator
             DrawDrawing(catalogue.ImagePath, Y + 20);
 
         }
-        public void AddPageNumber()
+        public void AddPageFooter()
         {
             var Y = GetHeight(page, 95);
             var font = new XFont("Verdana", 6, XFontStyle.Regular);
-            DrawStringCentre(gfx, $"Source data is copyright(c) 2011, Fiat Group Automobiles.  Code to produce this PDF is copyright(c) 2021, Chris Reynolds.  Page: {PageNumber}", punchMargin, Y, page.Width - punchMargin * 2, font);
+            DrawStringCentre(gfx, $"Source data is Copyright(c) 2011, Fiat Group Automobiles.  Code to produce this PDF is Copyright(c) 2021, Chris Reynolds.  Page: {PageNumber}", punchMargin, Y, page.Width - punchMargin * 2, font);
 
             PageNumber++;
         }
@@ -76,7 +76,7 @@ namespace ePerPartsListGenerator
             GroupY = 0.0;
             foreach (var drawing in catalogue.Drawings)
             {
-                y = StartNewPage(drawing);
+                y = StartNewDrawingPage(drawing);
 
                 var font = new XFont("Verdana", 7, XFontStyle.Regular);
                 var w = GetWidth(page, 100) - groupsWidth - punchMargin - littleGap;
@@ -101,7 +101,7 @@ namespace ePerPartsListGenerator
                     var DrawItems = CalculateHeightForItems(widths, Fields, font, gfx);
                     if (y + (DrawItems.Count * 10) > GetHeight(page, 90))
                     {
-                        y = StartNewPage(drawing);
+                        y = StartNewDrawingPage(drawing);
                         y = DrawPartsTableHeaders(gfx, y, font, widths, w, tableLeft);
                     }
                     if (LastRif != p.RIF)
@@ -178,12 +178,11 @@ namespace ePerPartsListGenerator
                 var DrawItems = CalculateHeightForItems(widths, Fields, font, gfx);
                 if (y + (DrawItems.Count * 10) > GetHeight(page, 90))
                 {
-                    y = StartNewPage(drawing);
+                    y = StartNewDrawingPage(drawing);
                     y = DrawLegendTableHeaders(gfx, y, font, widths, w, tableLeft);
                 }
                 y = DrawAllItems(gfx, y, font, widths, tableLeft, DrawItems, Alignments);
             }
-
             return y;
         }
 
@@ -200,7 +199,7 @@ namespace ePerPartsListGenerator
 
                 if (y + (DrawItems.Count * 10) > GetHeight(page, 90))
                 {
-                    y = StartNewPage(drawing);
+                    y = StartNewDrawingPage(drawing);
                     y = DrawLegendTableHeaders(gfx, y, font, widths, w, tableLeft);
                 }
                 y = DrawAllItems(gfx, y, font, widths, tableLeft, DrawItems, Alignments);
@@ -209,16 +208,16 @@ namespace ePerPartsListGenerator
             return y;
         }
 
-        private double StartNewPage(Drawing drawing)
+        private double StartNewDrawingPage(Drawing drawing)
         {
             double y;
             page = doc.AddPage();
             gfx = XGraphics.FromPdfPage(page);
             page.Size = PdfSharp.PageSize.A4;
             page.Orientation = PdfSharp.PageOrientation.Portrait;
-            AddPageNumber();
+            AddPageFooter();
             DrawGroupTags(drawing);
-            y = DrawPageTitle(drawing);
+            y = DrawDrawingPageTitle(drawing);
             y = DrawDrawing(drawing.ImagePath, y);
             return y;
         }
@@ -229,7 +228,7 @@ namespace ePerPartsListGenerator
             gfx = XGraphics.FromPdfPage(page);
             page.Size = PdfSharp.PageSize.A4;
             page.Orientation = PdfSharp.PageOrientation.Portrait;
-            AddPageNumber();
+            AddPageFooter();
             DrawGroupTags(drawing);
             y = DrawClichePageTitle(drawing, cliche);
             y = DrawDrawing(cliche.ImagePath, y);
@@ -427,7 +426,7 @@ namespace ePerPartsListGenerator
             gfx.DrawString(str, font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopRight);
             return rect.Height;
         }
-        private double DrawPageTitle(Drawing drawing)
+        private double DrawDrawingPageTitle(Drawing drawing)
         {
             var StartY = GetHeight(page, 5);
             // Create a font

@@ -2,6 +2,9 @@
 
 namespace ePerPartsListGenerator
 {
+    /// <summary>
+    /// Details about an individual part.  Includes a list of any modification or variant comments
+    /// </summary>
     class Part
     {
         public string Description;

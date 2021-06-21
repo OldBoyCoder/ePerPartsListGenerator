@@ -2,6 +2,10 @@
 
 namespace ePerPartsListGenerator
 {
+    /// <summary>
+    /// A Drawings is the main entity in the parts book.
+    /// It represents a single drawing of a section of the car
+    /// </summary>
     class Drawing
     {
         public string Description;
@@ -17,6 +21,9 @@ namespace ePerPartsListGenerator
         internal List<string> ModificationList = new List<string>();
         internal string Modifications;
         internal string ValidFor;
+        /// <summary>
+        /// A list of any parts that have further expansion available.
+        /// </summary>
         internal Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
     }
 }
