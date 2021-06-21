@@ -69,11 +69,6 @@ namespace ePerPartsListGenerator
             foreach (var d in drawings)
             {
                 AddParts(CatCode, d);
-                //foreach (var item in d.ModificationList)
-                //{
-                //    AddLegendEntryForModification(cat, item);
-                //}
-
             }
             return drawings;
         }
@@ -100,7 +95,7 @@ namespace ePerPartsListGenerator
             return d;
 
         }
-        public Dictionary<string, string> GetAllVariants(Catalogue cat)
+        public Dictionary<string, string> GetAllVariantLegendEntries(Catalogue cat)
         {
             var d = new Dictionary<string, string>();
             var sql = $"SELECT ISNULL(VMK_TYPE, '') + ISNULL(VMK_COD, ''), VMK_DSC FROM VMK_DSC where cat_cod = '{cat.CatCode}' and lng_cod = '3' order by VMK_type";
@@ -171,17 +166,23 @@ namespace ePerPartsListGenerator
 
             }
             dr.Close();
+            PopulateCliches(d);
+
+        }
+
+        private void PopulateCliches(Drawing d)
+        {
             foreach (var item in d.Cliches)
             {
 
                 // Now get that parts for the cliches;
-                sql = $"select CPD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.CPD_QTY, '', ISNULL(NTS.NTS_DSC, ''), ISNULL(D.CLH_COD, '') " +
+                var sql = $"select CPD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.CPD_QTY, '', ISNULL(NTS.NTS_DSC, ''), ISNULL(D.CLH_COD, '') " +
                     $"from CPXDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.PRT_CDS_COD AND LNG_COD = '3' " +
                     $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.CPD_AGG_DSC AND DAD.LNG_COD = '3'  " +
                     $"LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
                     $"where D.CPLX_PRT_COD = '{item.Key}' AND D.CLH_COD = '{item.Value.ClicheCode}'  order by CpD_RIF, CPD_RIF_SEQ";
-                cmd = new SqlCommand(sql, conn);
-                dr = cmd.ExecuteReader();
+                var cmd = new SqlCommand(sql, conn);
+                var dr = cmd.ExecuteReader();
                 item.Value.Parts = new List<Part>();
                 while (dr.Read())
                 {
@@ -220,10 +221,8 @@ namespace ePerPartsListGenerator
                 }
                 dr.Close();
             }
-
-
-
         }
+
         public void Close()
         {
             conn.Close();

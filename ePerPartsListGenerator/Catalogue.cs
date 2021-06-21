@@ -32,7 +32,7 @@ namespace ePerPartsListGenerator
             rep.Open();
             rep.GetCatalogue(this, CatCode);
             AllModifications = rep.GetAllModificationLegendEntries(this);
-            AllVariants = rep.GetAllVariants(this);
+            AllVariants = rep.GetAllVariantLegendEntries(this);
             Drawings = rep.GetDrawings(this, CatalogueCode);
             Groups = Drawings.Select(x => x.GroupDesc).Distinct().ToList();
             rep.Close();
