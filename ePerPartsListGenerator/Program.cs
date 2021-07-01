@@ -2,7 +2,7 @@
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             var rep = new Repository();
             rep.Open();
@@ -10,8 +10,10 @@
             cat.PopulateCatalogue("PK");
             rep.Close();
             var renderer = new CatalogueRendererLandscape(cat);
+            renderer.DocumentPerSection = true;
             renderer.StartDocument();
-            renderer.AddDrawings();
+            renderer.AddGroups(cat);
+            //renderer.AddDrawings();
         }
 
 
