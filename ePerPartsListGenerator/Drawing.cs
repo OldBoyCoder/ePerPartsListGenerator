@@ -8,14 +8,11 @@ namespace ePerPartsListGenerator
     /// </summary>
     class Drawing
     {
-        public string Description;
-        public string TableCode;
         public int DrawingNo;
         public int Revision;
         public int Variante;
         public string ImagePath;
-        public string GroupDesc;
-        public string GroupCode;
+        public string TableCode;
         public List<Part> Parts;
         internal List<string> CompatibilityList = new List<string>();
         internal List<string> ModificationList = new List<string>();

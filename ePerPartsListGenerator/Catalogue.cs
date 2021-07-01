@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace ePerPartsListGenerator
 {
@@ -10,12 +9,12 @@ namespace ePerPartsListGenerator
     /// </summary>
     class Catalogue
     {
-        public List<Drawing> Drawings;
+        //public List<Drawing> Drawings;
         /// <summary>
         /// Maintain a list of the distinct groups used in the catalogue.  It is used to
         /// draw the quick access tabs down the side of the page
         /// </summary>
-        public List<string> Groups;
+        public List<Group> Groups;
         public string Description;
         public string CatCode;
         public Dictionary<string, string> AllModifications;
@@ -24,17 +23,25 @@ namespace ePerPartsListGenerator
         /// <summary>
         /// Pull back everything from the database for this catalogue
         /// </summary>
-        /// <param name="CatalogueCode">The code for the car of interest e.g. PK for Barchetta</param>
-        public void PopulateCatalogue(string CatalogueCode)
+        /// <param name="catalogueCode">The code for the car of interest e.g. PK for Barchetta</param>
+        public void PopulateCatalogue(string catalogueCode)
         {
-            CatCode = CatalogueCode;
+            CatCode = catalogueCode;
             var rep = new Repository();
             rep.Open();
             rep.GetCatalogue(this, CatCode);
             AllModifications = rep.GetAllModificationLegendEntries(this);
             AllVariants = rep.GetAllVariantLegendEntries(this);
-            Drawings = rep.GetDrawings(this, CatalogueCode);
-            Groups = Drawings.Select(x => x.GroupDesc).Distinct().ToList();
+            //Drawings = rep.GetDrawings(this, CatalogueCode);
+            Groups = rep.GetAllGroupEntries(this);
+            foreach (var group in Groups)
+            {
+                rep.GetGroupTables(this, group);
+                foreach (var table in group.Tables)
+                {
+                    rep.GetTableDrawings(this, group, table);
+                }
+            }
             rep.Close();
         }
     }

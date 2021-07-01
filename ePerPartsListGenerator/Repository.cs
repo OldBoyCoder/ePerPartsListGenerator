@@ -5,21 +5,21 @@ namespace ePerPartsListGenerator
 {
     class Repository
     {
-        SqlConnection conn;
+        SqlConnection _conn;
         public void Open()
         {
-            var cb = new SqlConnectionStringBuilder();
-            cb.InitialCatalog = "ePer";
-            cb.DataSource = "localhost";
-            cb.IntegratedSecurity = true;
-            conn = new SqlConnection(cb.ConnectionString);
-            conn.Open();
+            var cb = new SqlConnectionStringBuilder
+            {
+                InitialCatalog = "ePer", DataSource = "localhost", IntegratedSecurity = true
+            };
+            _conn = new SqlConnection(cb.ConnectionString);
+            _conn.Open();
 
         }
-        public void GetCatalogue(Catalogue cat, string CatCode)
+        public void GetCatalogue(Catalogue cat, string catCode)
         {
-            var sql = $"select CAT_DSC, IMG_NAME from CATALOGUES where cat_cod = '{CatCode}'";
-            var cmd = new SqlCommand(sql, conn);
+            var sql = $"select CAT_DSC, IMG_NAME from CATALOGUES where cat_cod = '{catCode}'";
+            var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             if (dr.Read())
             {
@@ -29,26 +29,67 @@ namespace ePerPartsListGenerator
             dr.Close();
 
         }
-        public List<Drawing> GetDrawings(Catalogue cat, string CatCode)
+        //public List<Drawing> GetDrawings(Catalogue cat, string CatCode)
+        //{
+        //    var drawings = new List<Drawing>();
+        //    var sql = $" SELECT DRAWINGS.TABLE_COD, TABLES_DSC.DSC, DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, DRAWINGS.IMG_PATH, DRAWINGS.PATTERN,DRAWINGS.MODIF, GD.GRP_DSC, GD.GRP_COD, DRAWINGS.MODIF, ISNULL(Drawings.PATTERN, '')   FROM DRAWINGS INNER JOIN TABLES_DSC ON DRAWINGS.TABLE_DSC_COD = TABLES_DSC.COD inner join GROUPS_DSC GD ON GD.GRP_COD = drawings.GRP_COD and gd.LNG_COD = '3' WHERE DRAWINGS.CAT_COD = '{CatCode}' AND TABLES_DSC.LNG_COD = '3' and(PATTERN LIKE '%M1%' or PATTERN IS NULL) ORDER BY DRAWINGS.TABLE_COD, DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE DESC, DRAWINGS.REVISIONE DESC";
+        //    var cmd = new SqlCommand(sql, conn);
+        //    var dr = cmd.ExecuteReader();
+        //    while (dr.Read())
+        //    {
+        //        var d = new Drawing();
+        //        d.Description = dr.GetString(1);
+        //        d.DrawingNo = dr.GetInt16(2);
+        //        d.ImagePath = dr.GetString(5);
+        //        d.Revision = dr.GetInt16(4);
+        //        d.Variante = dr.GetInt16(3);
+        //        d.TableCode = dr.GetString(0);
+        //        d.GroupDesc = dr.GetString(8);
+        //        d.GroupCode = dr.GetInt16(9).ToString();
+        //        if (!dr.IsDBNull(10))
+        //        {
+        //            string mods = dr.GetString(10);
+        //            d.Modifications = mods;
+        //            var modItems = mods.Split(new[] { ',' });
+        //            foreach (var item in modItems)
+        //            {
+        //                var mod = item.Substring(1);
+        //                if (!d.ModificationList.Contains(mod))
+        //                    d.ModificationList.Add(mod);
+        //            }
+        //        }
+        //        else
+        //            d.Modifications = "";
+        //        d.ValidFor = dr.GetString(11);
+        //        d.CompatibilityList.AddRange(d.ValidFor.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' }, System.StringSplitOptions.RemoveEmptyEntries));
+
+        //        drawings.Add(d);
+        //    }
+        //    dr.Close();
+        //    foreach (var d in drawings)
+        //    {
+        //        AddParts(CatCode, d);
+        //    }
+        //    return drawings;
+        //}
+
+        internal void GetTableDrawings(Catalogue catalogue, Group group, Table table)
         {
-            var drawings = new List<Drawing>();
-            var sql = $" SELECT DRAWINGS.TABLE_COD, TABLES_DSC.DSC, DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, DRAWINGS.IMG_PATH, DRAWINGS.PATTERN,DRAWINGS.MODIF, GD.GRP_DSC, GD.GRP_COD, DRAWINGS.MODIF, ISNULL(Drawings.PATTERN, '')   FROM DRAWINGS INNER JOIN TABLES_DSC ON DRAWINGS.TABLE_DSC_COD = TABLES_DSC.COD inner join GROUPS_DSC GD ON GD.GRP_COD = drawings.GRP_COD and gd.LNG_COD = '3' WHERE DRAWINGS.CAT_COD = '{CatCode}' AND TABLES_DSC.LNG_COD = '3' /*and(PATTERN LIKE '%M1%' or PATTERN IS NULL)*/ ORDER BY DRAWINGS.TABLE_COD, DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE DESC, DRAWINGS.REVISIONE DESC";
-            var cmd = new SqlCommand(sql, conn);
+            table.Drawings = new List<Drawing>();
+            var sql = $" SELECT DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, DRAWINGS.IMG_PATH, DRAWINGS.MODIF, ISNULL(Drawings.PATTERN, ''), TABLE_COD   FROM DRAWINGS WHERE DRAWINGS.CAT_COD = '{catalogue.CatCode}' AND GRP_COD = {group.Code} AND SGRP_COD = {table.TableCode} and(PATTERN LIKE '%M2%' or PATTERN IS NULL) ORDER BY DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE DESC, DRAWINGS.REVISIONE DESC";
+            var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
                 var d = new Drawing();
-                d.Description = dr.GetString(1);
-                d.DrawingNo = dr.GetInt16(2);
-                d.ImagePath = dr.GetString(5);
-                d.Revision = dr.GetInt16(4);
-                d.Variante = dr.GetInt16(3);
-                d.TableCode = dr.GetString(0);
-                d.GroupDesc = dr.GetString(8);
-                d.GroupCode = dr.GetInt16(9).ToString();
-                if (!dr.IsDBNull(10))
+                d.DrawingNo = dr.GetInt16(0);
+                d.ImagePath = dr.GetString(3);
+                d.Revision = dr.GetInt16(2);
+                d.Variante = dr.GetInt16(1);
+                d.TableCode = dr.GetString(6);
+                if (!dr.IsDBNull(4))
                 {
-                    string mods = dr.GetString(10);
+                    string mods = dr.GetString(4);
                     d.Modifications = mods;
                     var modItems = mods.Split(new[] { ',' });
                     foreach (var item in modItems)
@@ -60,18 +101,36 @@ namespace ePerPartsListGenerator
                 }
                 else
                     d.Modifications = "";
-                d.ValidFor = dr.GetString(11);
+                d.ValidFor = dr.GetString(5);
                 d.CompatibilityList.AddRange(d.ValidFor.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' }, System.StringSplitOptions.RemoveEmptyEntries));
 
-                drawings.Add(d);
+                table.Drawings.Add(d);
             }
             dr.Close();
-            foreach (var d in drawings)
+            foreach (var d in table.Drawings)
             {
-                AddParts(CatCode, d);
+                AddParts(catalogue.CatCode, group, table, d);
             }
-            return drawings;
         }
+
+        internal void GetGroupTables(Catalogue catalogue, Group group)
+        {
+            group.Tables = new List<Table>();
+            var sql = $" SELECT S.SGRP_COD, SGRP_DSC FROM SUBGROUPS_BY_CAT S JOIN SUBGROUPS_DSC SD ON SD.GRP_COD = S.GRP_COD AND SD.SGRP_COD = S.SGRP_COD AND LNG_COD = '3'WHERE S.CAT_COD = '{catalogue.CatCode}' AND S.GRP_COD = {group.Code} order by SGRP_COD";
+            var cmd = new SqlCommand(sql, _conn);
+            var dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                var t = new Table();
+                t.Description = dr.GetString(1);
+                t.TableCode = dr.GetInt16(0);
+                t.FullCode = group.Code + t.TableCode.ToString("00");
+                group.Tables.Add(t);
+            }
+            dr.Close();
+        }
+
+
         public Dictionary<string, string> GetAllModificationLegendEntries(Catalogue cat)
         {
             var d = new Dictionary<string, string>();
@@ -79,7 +138,7 @@ namespace ePerPartsListGenerator
                 "JOIN MDF_ACT A ON A.CAT_COD = D.CAT_COD AND A.MDF_COD = D.MDF_COD " +
                 $"where D.CAT_COD = '{cat.CatCode}' and LNG_COD = '3'	order by mdf_COD, A.MDFACT_PROG";
             var lastCode = "";
-            var cmd = new SqlCommand(sql, conn);
+            var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
@@ -99,7 +158,7 @@ namespace ePerPartsListGenerator
         {
             var d = new Dictionary<string, string>();
             var sql = $"SELECT ISNULL(VMK_TYPE, '') + ISNULL(VMK_COD, ''), VMK_DSC FROM VMK_DSC where cat_cod = '{cat.CatCode}' and lng_cod = '3' order by VMK_type";
-            var cmd = new SqlCommand(sql, conn);
+            var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
@@ -109,18 +168,38 @@ namespace ePerPartsListGenerator
             return d;
 
         }
+        public List<Group> GetAllGroupEntries(Catalogue cat)
+        {
+            var d = new List<Group>();
+            var sql = $"SELECT G.GRP_COD, ISNULL(IMG_NAME, ''), GD.GRP_DSC FROM GROUPS G JOIN GROUPS_DSC GD ON GD.GRP_COD = G.GRP_COD AND LNG_COD = '3'  where cat_cod = '{cat.CatCode}' order by G.GRP_COD";
+            var cmd = new SqlCommand(sql, _conn);
+            var dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                var g = new Group
+                {
+                    Code = dr.GetString(0),
+                    ImageName = @"L_EPERFIG\" + dr.GetString(1),
+                    Description = dr.GetString(2)
+                };
+                d.Add(g);
+            }
+            dr.Close();
+            return d;
 
-        private void AddParts(string CatCode, Drawing d)
+        }
+
+        private void AddParts(string catCode, Group group, Table table, Drawing d)
         {
             var sql = $"select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.TBD_QTY, D.TBD_VAL_FORMULA, ISNULL(NTS.NTS_DSC, ''), ISNULL(CL.CLH_COD, ''), ISNULL(CL.IMG_PATH, '') " +
                 $"from TBDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.CDS_COD AND LNG_COD = '3' " +
                 $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.TBD_AGG_DSC AND DAD.LNG_COD = '3'  " +
                 $"LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
                 $"LEFT OUTER JOIN [CLICHE] CL ON Cl.CPLX_PRT_COD = D.PRT_COD " +
-                $"where CAT_COD = '{CatCode}' and TABLE_COD = '{d.TableCode}' and VARIANTE = {d.Variante}  order by TBD_RIF, TBD_SEQ";
+                $"where CAT_COD = '{catCode}' and grp_COD = '{group.Code}' AND SGRP_COD = {table.TableCode} and VARIANTE = {d.Variante}  order by TBD_RIF, TBD_SEQ";
             d.Parts = new List<Part>();
             d.CompatibilityList = new List<string>();
-            var cmd = new SqlCommand(sql, conn);
+            var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
@@ -140,7 +219,7 @@ namespace ePerPartsListGenerator
                 }
                 p.PartNo = dr.GetString(1);
                 p.Qty = dr.GetString(4);
-                p.RIF = dr.GetInt16(0);
+                p.Rif = dr.GetInt16(0);
                 p.Compatibility = new List<string>();
                 if (!dr.IsDBNull(5))
                 {
@@ -181,7 +260,7 @@ namespace ePerPartsListGenerator
                     $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.CPD_AGG_DSC AND DAD.LNG_COD = '3'  " +
                     $"LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
                     $"where D.CPLX_PRT_COD = '{item.Key}' AND D.CLH_COD = '{item.Value.ClicheCode}'  order by CpD_RIF, CPD_RIF_SEQ";
-                var cmd = new SqlCommand(sql, conn);
+                var cmd = new SqlCommand(sql, _conn);
                 var dr = cmd.ExecuteReader();
                 item.Value.Parts = new List<Part>();
                 while (dr.Read())
@@ -202,7 +281,7 @@ namespace ePerPartsListGenerator
                     }
                     p.PartNo = dr.GetString(1);
                     p.Qty = dr.GetString(4);
-                    p.RIF = dr.GetInt16(0);
+                    p.Rif = dr.GetInt16(0);
                     p.Compatibility = new List<string>();
                     if (!dr.IsDBNull(5))
                     {
@@ -225,7 +304,7 @@ namespace ePerPartsListGenerator
 
         public void Close()
         {
-            conn.Close();
+            _conn.Close();
         }
 
     }
