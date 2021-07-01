@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Model
 {
     /// <summary>
     /// A Drawings is the main entity in the parts book.

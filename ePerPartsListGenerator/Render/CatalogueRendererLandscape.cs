@@ -1,13 +1,14 @@
-﻿using PdfSharp.Drawing;
-using PdfSharp.Pdf;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using ePerPartsListGenerator.Model;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Render
 {
     class CatalogueRendererLandscape
 
@@ -150,10 +151,10 @@ namespace ePerPartsListGenerator
 
             if (DocumentPerSection)
             {
-                var entry = archive.CreateEntry($"Parts_{catalogue.CatCode}_title.pdf", CompressionLevel.Optimal);
+                var entry = archive?.CreateEntry($"Parts_{catalogue.CatCode}_title.pdf", CompressionLevel.Optimal);
 
-                titleDoc.Save(entry.Open(), true);
-                archive.Dispose();
+                titleDoc.Save(entry?.Open(), true);
+                archive?.Dispose();
                 zipToOpen?.Close();
                 zipToOpen?.Dispose();
             }

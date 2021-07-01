@@ -1,6 +1,6 @@
 ﻿using PdfSharp.Drawing;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Render
 {
     class RenderFont
     {

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlClient;
+using ePerPartsListGenerator.Model;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Repository
 {
     class Repository
     {
@@ -29,50 +30,6 @@ namespace ePerPartsListGenerator
             dr.Close();
 
         }
-        //public List<Drawing> GetDrawings(Catalogue cat, string CatCode)
-        //{
-        //    var drawings = new List<Drawing>();
-        //    var sql = $" SELECT DRAWINGS.TABLE_COD, TABLES_DSC.DSC, DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, DRAWINGS.IMG_PATH, DRAWINGS.PATTERN,DRAWINGS.MODIF, GD.GRP_DSC, GD.GRP_COD, DRAWINGS.MODIF, ISNULL(Drawings.PATTERN, '')   FROM DRAWINGS INNER JOIN TABLES_DSC ON DRAWINGS.TABLE_DSC_COD = TABLES_DSC.COD inner join GROUPS_DSC GD ON GD.GRP_COD = drawings.GRP_COD and gd.LNG_COD = '3' WHERE DRAWINGS.CAT_COD = '{CatCode}' AND TABLES_DSC.LNG_COD = '3' and(PATTERN LIKE '%M1%' or PATTERN IS NULL) ORDER BY DRAWINGS.TABLE_COD, DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE DESC, DRAWINGS.REVISIONE DESC";
-        //    var cmd = new SqlCommand(sql, conn);
-        //    var dr = cmd.ExecuteReader();
-        //    while (dr.Read())
-        //    {
-        //        var d = new Drawing();
-        //        d.Description = dr.GetString(1);
-        //        d.DrawingNo = dr.GetInt16(2);
-        //        d.ImagePath = dr.GetString(5);
-        //        d.Revision = dr.GetInt16(4);
-        //        d.Variante = dr.GetInt16(3);
-        //        d.TableCode = dr.GetString(0);
-        //        d.GroupDesc = dr.GetString(8);
-        //        d.GroupCode = dr.GetInt16(9).ToString();
-        //        if (!dr.IsDBNull(10))
-        //        {
-        //            string mods = dr.GetString(10);
-        //            d.Modifications = mods;
-        //            var modItems = mods.Split(new[] { ',' });
-        //            foreach (var item in modItems)
-        //            {
-        //                var mod = item.Substring(1);
-        //                if (!d.ModificationList.Contains(mod))
-        //                    d.ModificationList.Add(mod);
-        //            }
-        //        }
-        //        else
-        //            d.Modifications = "";
-        //        d.ValidFor = dr.GetString(11);
-        //        d.CompatibilityList.AddRange(d.ValidFor.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' }, System.StringSplitOptions.RemoveEmptyEntries));
-
-        //        drawings.Add(d);
-        //    }
-        //    dr.Close();
-        //    foreach (var d in drawings)
-        //    {
-        //        AddParts(CatCode, d);
-        //    }
-        //    return drawings;
-        //}
-
         internal void GetTableDrawings(Catalogue catalogue, Group group, Table table)
         {
             table.Drawings = new List<Drawing>();

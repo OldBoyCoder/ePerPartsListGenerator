@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Model
 {
     /// <summary>
     /// Details about an individual part.  Includes a list of any modification or variant comments

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Model
 {
     /// <summary>
     /// A cliche is the drawing of a part that is made up of other parts

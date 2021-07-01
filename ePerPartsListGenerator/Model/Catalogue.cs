@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ePerPartsListGenerator
+namespace ePerPartsListGenerator.Model
 {
     /// <summary>
     /// Catalgue represents a single model in the ePer system.  Here it is used as the root to 
@@ -27,7 +27,7 @@ namespace ePerPartsListGenerator
         public void PopulateCatalogue(string catalogueCode)
         {
             CatCode = catalogueCode;
-            var rep = new Repository();
+            var rep = new Repository.Repository();
             rep.Open();
             rep.GetCatalogue(this, CatCode);
             AllModifications = rep.GetAllModificationLegendEntries(this);

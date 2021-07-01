@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-namespace ePerPartsListGenerator
+
+namespace ePerPartsListGenerator.Model
 {
     class Group
     {

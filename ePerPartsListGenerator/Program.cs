@@ -1,10 +1,13 @@
-﻿namespace ePerPartsListGenerator
+﻿using ePerPartsListGenerator.Model;
+using ePerPartsListGenerator.Render;
+
+namespace ePerPartsListGenerator
 {
     class Program
     {
         static void Main()
         {
-            var rep = new Repository();
+            var rep = new Repository.Repository();
             rep.Open();
             var cat = new Catalogue();
             cat.PopulateCatalogue("PK");
