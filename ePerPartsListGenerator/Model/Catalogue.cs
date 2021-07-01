@@ -3,7 +3,7 @@
 namespace ePerPartsListGenerator.Model
 {
     /// <summary>
-    /// Catalgue represents a single model in the ePer system.  Here it is used as the root to 
+    /// Catalogue represents a single model in the ePer system.  Here it is used as the root to 
     /// the class hierarchy.  We also hold the details of all the modifications and variants
     /// used across the whole catalogue to save having to get them for each drawing
     /// </summary>

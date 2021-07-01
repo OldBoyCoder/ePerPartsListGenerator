@@ -12,8 +12,7 @@ namespace ePerPartsListGenerator
             var cat = new Catalogue();
             cat.PopulateCatalogue("PK");
             rep.Close();
-            var renderer = new CatalogueRendererLandscape(cat);
-            renderer.DocumentPerSection = true;
+            var renderer = new CatalogueRendererLandscape(cat) {DocumentPerSection = true};
             renderer.StartDocument();
             renderer.AddGroups(cat);
             //renderer.AddDrawings();

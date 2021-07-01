@@ -10,7 +10,7 @@ namespace ePerPartsListGenerator.Model
     {
         public int DrawingNo;
         public int Revision;
-        public int Variante;
+        public int Variant;
         public string ImagePath;
         public string TableCode;
         public List<Part> Parts;

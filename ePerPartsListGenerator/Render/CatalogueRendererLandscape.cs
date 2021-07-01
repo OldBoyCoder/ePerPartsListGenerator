@@ -483,7 +483,7 @@ namespace ePerPartsListGenerator.Render
         }
         private double DrawDrawing(string imagePath, double startY)
         {
-            XImage image = XImage.FromFile(@"c:\temp\eper\images\" + imagePath);
+            XImage image = XImage.FromFile(@"c:\temp\ePer\images\" + imagePath);
             var xx = GetWidth(_page, 80) - (_groupsWidth + _littleGap + _punchMargin);
             var yy = xx;
             if (image.PixelWidth > image.PixelHeight)
@@ -551,7 +551,7 @@ namespace ePerPartsListGenerator.Render
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
             di = new[] { "Table", $"[{drawing.TableCode}] {table.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Variant", drawing.Variante.ToString() };
+            di = new[] { "Variant", drawing.Variant.ToString() };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
             di = new[] { "Revision", drawing.Revision.ToString() };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);

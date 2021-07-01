@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlClient;
 using ePerPartsListGenerator.Model;
+// ReSharper disable StringLiteralTypo
 
 namespace ePerPartsListGenerator.Repository
 {
@@ -38,17 +39,19 @@ namespace ePerPartsListGenerator.Repository
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
-                var d = new Drawing();
-                d.DrawingNo = dr.GetInt16(0);
-                d.ImagePath = dr.GetString(3);
-                d.Revision = dr.GetInt16(2);
-                d.Variante = dr.GetInt16(1);
-                d.TableCode = dr.GetString(6);
+                var d = new Drawing
+                {
+                    DrawingNo = dr.GetInt16(0),
+                    ImagePath = dr.GetString(3),
+                    Revision = dr.GetInt16(2),
+                    Variant = dr.GetInt16(1),
+                    TableCode = dr.GetString(6)
+                };
                 if (!dr.IsDBNull(4))
                 {
                     string mods = dr.GetString(4);
                     d.Modifications = mods;
-                    var modItems = mods.Split(new[] { ',' });
+                    var modItems = mods.Split(',');
                     foreach (var item in modItems)
                     {
                         var mod = item.Substring(1);
@@ -78,9 +81,7 @@ namespace ePerPartsListGenerator.Repository
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
-                var t = new Table();
-                t.Description = dr.GetString(1);
-                t.TableCode = dr.GetInt16(0);
+                var t = new Table {Description = dr.GetString(1), TableCode = dr.GetInt16(0)};
                 t.FullCode = group.Code + t.TableCode.ToString("00");
                 group.Tables.Add(t);
             }
@@ -91,7 +92,7 @@ namespace ePerPartsListGenerator.Repository
         public Dictionary<string, string> GetAllModificationLegendEntries(Catalogue cat)
         {
             var d = new Dictionary<string, string>();
-            var sql = $"select D.MDF_COD, MDF_DSC, MDFACT_SPEC, A.ACT_COD from modif_DSC D " +
+            var sql = "select D.MDF_COD, MDF_DSC, MDFACT_SPEC, A.ACT_COD from modif_DSC D " +
                 "JOIN MDF_ACT A ON A.CAT_COD = D.CAT_COD AND A.MDF_COD = D.MDF_COD " +
                 $"where D.CAT_COD = '{cat.CatCode}' and LNG_COD = '3'	order by mdf_COD, A.MDFACT_PROG";
             var lastCode = "";
@@ -148,25 +149,23 @@ namespace ePerPartsListGenerator.Repository
 
         private void AddParts(string catCode, Group group, Table table, Drawing d)
         {
-            var sql = $"select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.TBD_QTY, D.TBD_VAL_FORMULA, ISNULL(NTS.NTS_DSC, ''), ISNULL(CL.CLH_COD, ''), ISNULL(CL.IMG_PATH, '') " +
-                $"from TBDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.CDS_COD AND LNG_COD = '3' " +
-                $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.TBD_AGG_DSC AND DAD.LNG_COD = '3'  " +
-                $"LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
-                $"LEFT OUTER JOIN [CLICHE] CL ON Cl.CPLX_PRT_COD = D.PRT_COD " +
-                $"where CAT_COD = '{catCode}' and grp_COD = '{group.Code}' AND SGRP_COD = {table.TableCode} and VARIANTE = {d.Variante}  order by TBD_RIF, TBD_SEQ";
+            var sql = "select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.TBD_QTY, D.TBD_VAL_FORMULA, ISNULL(NTS.NTS_DSC, ''), ISNULL(CL.CLH_COD, ''), ISNULL(CL.IMG_PATH, '') " +
+                "from TBDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.CDS_COD AND LNG_COD = '3' " +
+                "LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.TBD_AGG_DSC AND DAD.LNG_COD = '3'  " +
+                "LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
+                "LEFT OUTER JOIN [CLICHE] CL ON Cl.CPLX_PRT_COD = D.PRT_COD " +
+                $"where CAT_COD = '{catCode}' and grp_COD = '{group.Code}' AND SGRP_COD = {table.TableCode} and VARIANTE = {d.Variant}  order by TBD_RIF, TBD_SEQ";
             d.Parts = new List<Part>();
             d.CompatibilityList = new List<string>();
             var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             while (dr.Read())
             {
-                var p = new Part();
-                p.Description = dr.GetString(2);
-                p.Modification = new List<string>();
+                var p = new Part {Description = dr.GetString(2), Modification = new List<string>()};
                 if (!dr.IsDBNull(3))
                 {
                     string mods = dr.GetString(3);
-                    p.Modification.AddRange(mods.Split(new[] { ',' }));
+                    p.Modification.AddRange(mods.Split(','));
                     foreach (var c in p.Modification)
                     {
                         var mod = c.Substring(1);
@@ -212,23 +211,21 @@ namespace ePerPartsListGenerator.Repository
             {
 
                 // Now get that parts for the cliches;
-                var sql = $"select CPD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.CPD_QTY, '', ISNULL(NTS.NTS_DSC, ''), ISNULL(D.CLH_COD, '') " +
-                    $"from CPXDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.PRT_CDS_COD AND LNG_COD = '3' " +
-                    $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.CPD_AGG_DSC AND DAD.LNG_COD = '3'  " +
-                    $"LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
+                var sql = "select CPD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.CPD_QTY, '', ISNULL(NTS.NTS_DSC, ''), ISNULL(D.CLH_COD, '') " +
+                    "from CPXDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.PRT_CDS_COD AND LNG_COD = '3' " +
+                    "LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.CPD_AGG_DSC AND DAD.LNG_COD = '3'  " +
+                    "LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '3'  " +
                     $"where D.CPLX_PRT_COD = '{item.Key}' AND D.CLH_COD = '{item.Value.ClicheCode}'  order by CpD_RIF, CPD_RIF_SEQ";
                 var cmd = new SqlCommand(sql, _conn);
                 var dr = cmd.ExecuteReader();
                 item.Value.Parts = new List<Part>();
                 while (dr.Read())
                 {
-                    var p = new Part();
-                    p.Description = dr.GetString(2);
-                    p.Modification = new List<string>();
+                    var p = new Part {Description = dr.GetString(2), Modification = new List<string>()};
                     if (!dr.IsDBNull(3))
                     {
                         string mods = dr.GetString(3);
-                        p.Modification.AddRange(mods.Split(new[] { ',' }));
+                        p.Modification.AddRange(mods.Split(','));
                         foreach (var c in p.Modification)
                         {
                             var mod = c.Substring(1);
