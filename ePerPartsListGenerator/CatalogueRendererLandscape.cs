@@ -117,7 +117,9 @@ namespace ePerPartsListGenerator
             ZipArchive archive = null;
             if (DocumentPerSection)
             {
-                zipToOpen = new FileStream($"c:\\temp\\Parts_{catalogue.CatCode}.zip", FileMode.Create);
+                var zipPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    $"Parts_{catalogue.CatCode}.zip");
+                zipToOpen = new FileStream(zipPath, FileMode.Create);
                 archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create);
             }
 
@@ -156,7 +158,11 @@ namespace ePerPartsListGenerator
                 zipToOpen?.Dispose();
             }
             else
-                _doc.Save($"c:\\temp\\Parts_{catalogue.CatCode}.pdf");
+            {
+                var pdfPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    $"Parts_{catalogue.CatCode}.pdf");
+                _doc.Save(pdfPath);
+            }
 
         }
 
