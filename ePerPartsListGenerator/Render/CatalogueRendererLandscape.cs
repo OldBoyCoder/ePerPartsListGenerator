@@ -109,19 +109,18 @@ namespace ePerPartsListGenerator.Render
             DrawStringRight(_gfx, $"Page: {_pageNumber}", _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
             _pageNumber++;
         }
-        public void AddGroups(Catalogue catalogue)
+        public Stream AddGroups(Catalogue catalogue)
         {
             _groupY = 0.0;
             _lastGroup = "";
             var titleDoc = _doc;
-            FileStream zipToOpen = null;
             ZipArchive archive = null;
+            var outputStream = new MemoryStream(16 * 1024 * 1024);
             if (DocumentPerSection)
             {
                 var zipPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     $"Parts_{catalogue.CatCode}.zip");
-                zipToOpen = new FileStream(zipPath, FileMode.Create);
-                archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create);
+                archive = new ZipArchive(outputStream, ZipArchiveMode.Create, true);
             }
 
             foreach (var group in catalogue.Groups)
@@ -155,16 +154,17 @@ namespace ePerPartsListGenerator.Render
 
                 titleDoc.Save(entry?.Open(), true);
                 archive?.Dispose();
-                zipToOpen?.Close();
-                zipToOpen?.Dispose();
+                outputStream.Flush();
+                outputStream.Seek(0, SeekOrigin.Begin);
             }
             else
             {
                 var pdfPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     $"Parts_{catalogue.CatCode}.pdf");
-                _doc.Save(pdfPath);
+                _doc.Save(outputStream, false);
             }
 
+            return outputStream;
         }
 
         private void AddMainPageContents(Catalogue catalogue, PdfDocument titleDoc)

@@ -7,11 +7,8 @@ namespace ePerPartsListGenerator
     {
         static void Main()
         {
-            var rep = new Repository.Repository();
-            rep.Open();
             var cat = new Catalogue();
-            cat.PopulateCatalogue("PK");
-            rep.Close();
+            cat.PopulateCatalogue("PK", "3");
             var renderer = new CatalogueRendererLandscape(cat) {DocumentPerSection = true};
             renderer.StartDocument();
             renderer.AddGroups(cat);

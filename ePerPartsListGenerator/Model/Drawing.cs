@@ -22,5 +22,7 @@ namespace ePerPartsListGenerator.Model
         /// A list of any parts that have further expansion available.
         /// </summary>
         internal Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
+
+        public short SgsCode;
     }
 }
