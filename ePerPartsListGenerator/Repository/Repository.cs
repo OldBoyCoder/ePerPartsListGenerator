@@ -33,7 +33,7 @@ namespace ePerPartsListGenerator.Repository
             if (dr.Read())
             {
                 cat.Description = dr.GetString(0);
-                cat.ImagePath = @"L_EPERFIG\" + dr.GetString(1);
+                cat.ImagePath = @"L_EPERFIG/" + dr.GetString(1);
             }
             dr.Close();
 
@@ -163,7 +163,7 @@ namespace ePerPartsListGenerator.Repository
                     var g = new Group
                     {
                         Code = dr.GetString(0),
-                        ImageName = @"L_EPERFIG\" + dr.GetString(1),
+                        ImageName = @"L_EPERFIG/" + dr.GetString(1),
                         Description = dr.GetString(2)
                     };
                     d.Add(g);

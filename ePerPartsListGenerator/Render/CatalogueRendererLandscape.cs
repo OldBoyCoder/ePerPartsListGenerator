@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using ePerPartsListGenerator.Model;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
@@ -34,6 +35,7 @@ namespace ePerPartsListGenerator.Render
         private RenderFont _groupFont;
         private double _workingWidth;
         private double _partsListTotalWidth;
+        private const string PathToImages = @"C:\Program Files (x86)\Fiat\ePER\data\images";
 
         private readonly XStringFormat[] _partsListAlignments = { XStringFormats.TopLeft, XStringFormats.TopRight, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft };
         private readonly XStringFormat[] _legendListAlignments = { XStringFormats.TopLeft, XStringFormats.TopLeft };
@@ -483,7 +485,38 @@ namespace ePerPartsListGenerator.Render
         }
         private double DrawDrawing(string imagePath, double startY)
         {
-            XImage image = XImage.FromFile(@"c:\temp\ePer\images\" + imagePath);
+            var parts = imagePath.Split('/');
+            var zipPath = PathToImages;
+            string zipFileToExtract;
+            if (parts.Length == 3)
+            {
+                zipPath = Path.Combine(zipPath, parts[0]);
+                zipFileToExtract = parts[1] +"/"+ parts[2];
+            }
+            else
+            {
+                zipPath = Path.Combine(zipPath, parts[0]);
+                zipFileToExtract = parts[1];
+            }
+            zipPath = Path.ChangeExtension(zipPath, "res");
+            ZipArchiveEntry entry;
+            XImage image = null;
+            using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Read))
+            {
+                entry = archive.GetEntry(zipFileToExtract);
+                if (entry != null)
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        entry.Open().CopyTo(ms);
+                        ms.Position = 0;
+                        image = XImage.FromStream(ms);
+                    }
+                }
+            }
+
+            if (image == null) return startY;
+
             var xx = GetWidth(_page, 80) - (_groupsWidth + _littleGap + _punchMargin);
             var yy = xx;
             if (image.PixelWidth > image.PixelHeight)
