@@ -43,31 +43,5 @@ namespace ePerPartsListGenerator.Model
         public Dictionary<string, string> AllModifications;
         public Dictionary<string, string> AllVariants;
         internal string ImagePath;
-
-        /// <summary>
-        /// Pull back everything from the database for this catalogue
-        /// </summary>
-        /// <param name="catalogueCode">The code for the car of interest e.g. PK for Barchetta</param>
-        /// <param name="languageCode"></param>
-        public void PopulateCatalogue(string catalogueCode, string languageCode)
-        {
-            CatCode = catalogueCode;
-            var rep = new Repository.Repository(languageCode);
-            rep.Open();
-            rep.GetCatalogue(this, CatCode);
-            AllModifications = rep.GetAllModificationLegendEntries(this);
-            AllVariants = rep.GetAllVariantLegendEntries(this);
-            //Drawings = rep.GetDrawings(this, CatalogueCode);
-            Groups = rep.GetAllGroupEntries(this);
-            foreach (var group in Groups)
-            {
-                rep.GetGroupTables(this, group);
-                foreach (var table in group.Tables)
-                {
-                    rep.GetTableDrawings(this, group, table);
-                }
-            }
-            rep.Close();
-        }
     }
 }

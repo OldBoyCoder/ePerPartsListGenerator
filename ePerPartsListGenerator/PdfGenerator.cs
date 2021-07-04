@@ -21,13 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ePerPartsListGenerator.Model;
 using ePerPartsListGenerator.Render;
 
 namespace ePerPartsListGenerator
@@ -36,8 +30,8 @@ namespace ePerPartsListGenerator
     {
         public Stream CreatePartsListPdf(string catalogueCode, string languageCode)
         {
-            var cat = new Catalogue();
-            cat.PopulateCatalogue(catalogueCode, languageCode);
+            var rep = new Repository.Repository(languageCode);
+            var cat = rep.GetCatalogue(catalogueCode);
             var renderer = new CatalogueRendererLandscape(cat) { DocumentPerSection = true };
             renderer.StartDocument();
             return renderer.AddGroups(cat);

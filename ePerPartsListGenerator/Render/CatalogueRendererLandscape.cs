@@ -27,7 +27,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using ePerPartsListGenerator.Model;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
@@ -143,8 +142,6 @@ namespace ePerPartsListGenerator.Render
             var outputStream = new MemoryStream(16 * 1024 * 1024);
             if (DocumentPerSection)
             {
-                var zipPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    $"Parts_{catalogue.CatCode}.zip");
                 archive = new ZipArchive(outputStream, ZipArchiveMode.Create, true);
             }
 
@@ -184,8 +181,6 @@ namespace ePerPartsListGenerator.Render
             }
             else
             {
-                var pdfPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    $"Parts_{catalogue.CatCode}.pdf");
                 _doc.Save(outputStream, false);
             }
 
@@ -522,11 +517,10 @@ namespace ePerPartsListGenerator.Render
                 zipFileToExtract = parts[1];
             }
             zipPath = Path.ChangeExtension(zipPath, "res");
-            ZipArchiveEntry entry;
             XImage image = null;
             using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Read))
             {
-                entry = archive.GetEntry(zipFileToExtract);
+                var entry = archive.GetEntry(zipFileToExtract);
                 if (entry != null)
                 {
                     using (var ms = new MemoryStream())

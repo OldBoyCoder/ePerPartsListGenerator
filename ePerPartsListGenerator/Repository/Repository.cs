@@ -32,7 +32,7 @@ namespace ePerPartsListGenerator.Repository
     class Repository
     {
         SqlConnection _conn;
-        private string _languageCode;
+        private readonly string _languageCode;
 
         public Repository(string languageCode)
         {
@@ -49,18 +49,40 @@ namespace ePerPartsListGenerator.Repository
             _conn.Open();
 
         }
-        public void GetCatalogue(Catalogue cat, string catCode)
+        public Catalogue ReadCatalogue(string catCode)
         {
             var sql = $"select CAT_DSC, IMG_NAME from CATALOGUES where cat_cod = '{catCode}'";
             var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
+            var cat = new Catalogue();
             if (dr.Read())
             {
                 cat.Description = dr.GetString(0);
                 cat.ImagePath = @"L_EPERFIG/" + dr.GetString(1);
             }
             dr.Close();
+            cat.CatCode = catCode;
+            return cat;
+        }
 
+        public Catalogue GetCatalogue(string catCode)
+        {
+            Open();
+            var cat = ReadCatalogue(catCode);
+            GetAllModificationLegendEntries(cat);
+            GetAllVariantLegendEntries(cat);
+            //Drawings = rep.GetDrawings(this, CatalogueCode);
+            GetAllGroupEntries(cat);
+            foreach (var group in cat.Groups)
+            {
+                GetGroupTables(cat, group);
+                foreach (var table in group.Tables)
+                {
+                    GetTableDrawings(cat, group, table);
+                }
+            }
+            Close();
+            return cat;
         }
         internal void GetTableDrawings(Catalogue catalogue, Group group, Table table)
         {
@@ -124,15 +146,15 @@ namespace ePerPartsListGenerator.Repository
                 while (dr.Read())
                 {
                     var t = new Table {Description = dr.GetString(1), TableCode = dr.GetInt16(0)};
-                    t.FullCode = @group.Code + t.TableCode.ToString("00");
-                    @group.Tables.Add(t);
+                    t.FullCode = group.Code + t.TableCode.ToString("00");
+                    group.Tables.Add(t);
                 }
                 dr.Close();
             }
         }
 
 
-        public Dictionary<string, string> GetAllModificationLegendEntries(Catalogue cat)
+        public void GetAllModificationLegendEntries(Catalogue cat)
         {
             var d = new Dictionary<string, string>();
             var sql = "select D.MDF_COD, ISNULL(MDF_DSC, ''), MDFACT_SPEC, A.ACT_COD from modif_DSC D " +
@@ -154,11 +176,9 @@ namespace ePerPartsListGenerator.Repository
                 }
                 dr.Close();
             }
-
-            return d;
-
+            cat.AllModifications = d;
         }
-        public Dictionary<string, string> GetAllVariantLegendEntries(Catalogue cat)
+        public void GetAllVariantLegendEntries(Catalogue cat)
         {
             var d = new Dictionary<string, string>();
             var sql = $"SELECT ISNULL(VMK_TYPE, '') + ISNULL(VMK_COD, ''), VMK_DSC FROM VMK_DSC where cat_cod = '{cat.CatCode}' and lng_cod = '{_languageCode}' order by VMK_type";
@@ -172,10 +192,9 @@ namespace ePerPartsListGenerator.Repository
                 dr.Close();
             }
 
-            return d;
-
+            cat.AllVariants = d;
         }
-        public List<Group> GetAllGroupEntries(Catalogue cat)
+        public void GetAllGroupEntries(Catalogue cat)
         {
             var d = new List<Group>();
             var sql = $"SELECT G.GRP_COD, ISNULL(IMG_NAME, ''), GD.GRP_DSC FROM GROUPS G JOIN GROUPS_DSC GD ON GD.GRP_COD = G.GRP_COD AND LNG_COD = '{_languageCode}'  where cat_cod = '{cat.CatCode}' order by G.GRP_COD";
@@ -195,7 +214,7 @@ namespace ePerPartsListGenerator.Repository
                 dr.Close();
             }
 
-            return d;
+            cat.Groups = d;
 
         }
 
