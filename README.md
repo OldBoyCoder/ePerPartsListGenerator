@@ -8,6 +8,12 @@ The data is not available here, only the code.  The data is Copyright(c) 2011, F
 
 This code assumes that the data from the ePer system has been extracted and stored in a SQL Server database. 
 
+## Database information
+
+The ePer system uses an MS-Access database to hold information about the parts drawings.  
+For the sake of my sanity I moved this to a SQL Server DB.  The SQL queries are all centralised in one file
+so can easily be changed to use a different DBMS if required.
+
 ## Hierarchy of a drawing
 
 Consider drawing 55523/02 for the Nuovo Ducato (2J).  This drawing has one variant but 3 revisions
@@ -26,7 +32,6 @@ Fiat Professional » NUOVO DUCATO » 2J NUOVO DUCATO 2006 (2006-2014) » 555 APPARA
 |Drawing variant revision|Revision 2|
 |List of parts or a table|.|TBDATA|
 
-## Database information
 
 ## Table List
 
@@ -56,14 +61,14 @@ Fiat Professional » NUOVO DUCATO » 2J NUOVO DUCATO 2006 (2006-2014) » 555 APPARA
 |INTERNAL_COLOURS_COMB||Possibly defines what colour interior goes with other elements?|
 |INTERNAL_COLOURS_DSC|CAT_COD, COD_COLORE_INT_VET, LNG_COD|Interior colour descriptions|
 |INTERNAL_COMPONENTS_DSC|COMPC_D, LNG_COD|Only Italian entries
-|KIT|CAT_COD, GRP_COD, SGRP_COD, SGS_COD, VARIANTE, REVISIONE, CPLX_PRT_COD, PRT_COD|A Kit of parts, example I've seen is brake pad sets, should get tagged on to end of parts list for a drawing or cliche
+|KIT|CAT_COD, GRP_COD, SGRP_COD, SGS_COD, VARIANTE, REVISIONE, CPLX_PRT_COD, PRT_COD|A Kit of parts, the only example I've seen is brake pad sets, should get tagged on to end of parts list for a drawing or cliche
 |KT_SCHEMA_INFO|PARAM_NAME|More database metadata
 |LANG|LNG_COD|Contains the description of the various language codes
 |MAKES|MK_COD|The names of the various Makes on the DB
 |MAP_*||Used to draw the selectable hotspots on group and sub group drawings
 |MARKET*||To do with the markets the cars were released in
 |MDF_ACT|ACT_COD, MDF_COD, CAT_COD|Contains the attributes of a vehicle modification
-|MODIF_DSC|CAT_COD, MDF_COD, LNGCOD|Conatins the descriptions of vehicle modifications
+|MODIF_DSC|CAT_COD, MDF_COD, LNGCOD|Contains the descriptions of vehicle modifications
 |MSG_PART_BY_MKT|MKT_COD|Table empty so difficult to see what it is
 |MVS|CAT_COD, MOD_COD ...|Looks like a list of models - more work needed
 |NOTES_DSC|NTS_COD, LNG_COD|A note about a part in a parts table (linked from, at least, TBDATA)
