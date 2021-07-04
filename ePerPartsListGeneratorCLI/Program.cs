@@ -21,18 +21,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 using System.IO;
 
 namespace ePerPartsListGeneratorCLI
 {
-    class Program
+    internal class Program
     {
-        static void Main()
+        private static void Main()
         {
             var pdfGen = new ePerPartsListGenerator.PdfGenerator();
-            var stream =pdfGen.CreatePartsListPdf("PK", "3"); //2J
-            using (FileStream file = new FileStream(@"c:\temp\parts.zip", FileMode.Create, FileAccess.Write))
+            var stream = pdfGen.CreatePartsListPdf("PK", "3"); //2J
+            using (var file = new FileStream(@"c:\temp\parts.zip", FileMode.Create, FileAccess.Write))
+            {
                 stream.CopyTo(file);
+            }
         }
     }
 }

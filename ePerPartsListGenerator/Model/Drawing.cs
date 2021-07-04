@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 using System.Collections.Generic;
 
 namespace ePerPartsListGenerator.Model
@@ -29,23 +30,24 @@ namespace ePerPartsListGenerator.Model
     /// A Drawings is the main entity in the parts book.
     /// It represents a single drawing of a section of the car
     /// </summary>
-    class Drawing
+    internal class Drawing
     {
-        public int DrawingNo;
-        public int Revision;
-        public int Variant;
-        public string ImagePath;
-        public string TableCode;
-        public List<Part> Parts;
-        internal List<string> CompatibilityList = new List<string>();
-        internal List<string> ModificationList = new List<string>();
+        internal int DrawingNo;
+        internal int Revision;
+        internal int Variant;
+        internal string ImagePath;
+        internal string TableCode;
+        internal List<Part> Parts;
+        internal readonly List<string> CompatibilityList = new List<string>();
+        internal readonly List<string> ModificationList = new List<string>();
         internal string Modifications;
         internal string ValidFor;
+
         /// <summary>
         /// A list of any parts that have further expansion available.
         /// </summary>
-        internal Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
+        internal readonly Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
 
-        public short SgsCode;
+        internal short SgsCode;
     }
 }

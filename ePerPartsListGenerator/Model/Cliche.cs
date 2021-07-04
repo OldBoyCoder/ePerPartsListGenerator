@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 using System.Collections.Generic;
 
 namespace ePerPartsListGenerator.Model
@@ -31,15 +32,15 @@ namespace ePerPartsListGenerator.Model
     /// the drawings for the brake system as a single part but is then expanded in
     /// subsequent cliches.
     /// </summary>
-    class Cliche
+    internal class Cliche
     {
-        public string PartNo;
-        public string Description; // The name of the parent part actually
-        public string ClicheCode;
-        public string ImagePath;
-        public List<Part> Parts; // The sub-parts that make up the parent part
+        internal string PartNo;
+        internal string Description; // The name of the parent part actually
+        internal readonly string ClicheCode;
+        internal string ImagePath;
+        internal List<Part> Parts; // The sub-parts that make up the parent part
 
-        public Cliche(string clicheCode)
+        internal Cliche(string clicheCode)
         {
             ClicheCode = clicheCode;
         }

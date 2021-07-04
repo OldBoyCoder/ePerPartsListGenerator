@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,7 +34,7 @@ using PdfSharp.Pdf;
 
 namespace ePerPartsListGenerator.Render
 {
-    class CatalogueRendererLandscape
+    internal class CatalogueRendererLandscape
 
     {
         private readonly Catalogue _catalogue;
@@ -47,9 +48,9 @@ namespace ePerPartsListGenerator.Render
         private PdfPage _page;
         private XGraphics _gfx;
         private double _groupY;
-        public Dictionary<string, long> TablesPages = new Dictionary<string, long>();
-        public Dictionary<string, long> GroupsPages = new Dictionary<string, long>();
-        public bool DocumentPerSection = false;
+        private readonly Dictionary<string, long> _tablesPages = new Dictionary<string, long>();
+        private readonly Dictionary<string, long> _groupsPages = new Dictionary<string, long>();
+        internal bool DocumentPerSection = false;
         private RenderFont _tableFont;
         private RenderFont _titleFont;
         private RenderFont _contentsFont;
@@ -59,27 +60,37 @@ namespace ePerPartsListGenerator.Render
         private double _partsListTotalWidth;
         private const string PathToImages = @"C:\Program Files (x86)\Fiat\ePER\data\images";
 
-        private readonly XStringFormat[] _partsListAlignments = { XStringFormats.TopLeft, XStringFormats.TopRight, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft };
-        private readonly XStringFormat[] _legendListAlignments = { XStringFormats.TopLeft, XStringFormats.TopLeft };
-        private readonly XStringFormat[] _contentAlignments = { XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopRight };
+        private readonly XStringFormat[] _partsListAlignments =
+        {
+            XStringFormats.TopLeft, XStringFormats.TopRight, XStringFormats.TopLeft, XStringFormats.TopLeft,
+            XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft
+        };
+
+        private readonly XStringFormat[] _legendListAlignments = {XStringFormats.TopLeft, XStringFormats.TopLeft};
+
+        private readonly XStringFormat[] _contentAlignments =
+            {XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopRight};
 
         private List<double> _legendListWidths;
         private List<double> _contentWidths;
         private List<double> _partsListWidths;
 
-        public CatalogueRendererLandscape(Catalogue catalogue)
+        internal CatalogueRendererLandscape(Catalogue catalogue)
         {
             _catalogue = catalogue;
         }
-        static double GetWidth(PdfPage page, double portion)
+
+        private static double GetWidth(PdfPage page, double portion)
         {
-            return (portion / 100.0) * page.Width;
+            return portion / 100.0 * page.Width;
         }
-        static double GetHeight(PdfPage page, double portion)
+
+        private static double GetHeight(PdfPage page, double portion)
         {
-            return (portion / 100.0) * page.Height;
+            return portion / 100.0 * page.Height;
         }
-        public void StartDocument()
+
+        internal void StartDocument()
         {
             _doc = new PdfDocument();
 
@@ -100,7 +111,6 @@ namespace ePerPartsListGenerator.Render
             _partsListTotalWidth = _partsListWidths.Sum(x => x) + (_partsListWidths.Count - 1) * _littleGap;
 
             DrawTitlePage();
-
         }
 
         private void DrawTitlePage()
@@ -109,9 +119,12 @@ namespace ePerPartsListGenerator.Render
 
             var y = GetHeight(_page, 10);
             y += DrawStringCentre(_gfx, "Parts list", _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            y += DrawStringCentre(_gfx, $"{_catalogue.CatCode} - {_catalogue.Description}", _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            y += DrawStringCentre(_gfx, $"Produced on {DateTime.Now:G}", _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            y += DrawStringCentre(_gfx, $"Using version {Assembly.GetExecutingAssembly().GetName().Version}", _punchMargin, y, _page.Width - _punchMargin, _titleFont);
+            y += DrawStringCentre(_gfx, $"{_catalogue.CatCode} - {_catalogue.Description}", _punchMargin, y,
+                _page.Width - _punchMargin, _titleFont);
+            y += DrawStringCentre(_gfx, $"Produced on {DateTime.Now:G}", _punchMargin, y, _page.Width - _punchMargin,
+                _titleFont);
+            y += DrawStringCentre(_gfx, $"Using version {Assembly.GetExecutingAssembly().GetName().Version}",
+                _punchMargin, y, _page.Width - _punchMargin, _titleFont);
             y = DrawDrawing(_catalogue.ImagePath, y + 20);
             _contentsY = y;
         }
@@ -126,13 +139,16 @@ namespace ePerPartsListGenerator.Render
             _tableFont = new RenderFont(new XFont(fontName, 7, XFontStyle.Regular));
         }
 
-        public void AddPageFooter()
+        private void AddPageFooter()
         {
             var y = GetHeight(_page, 95);
-            DrawStringCentre(_gfx, "Source data is Copyright(c) 2011, Fiat Group Automobiles.  Code to produce this PDF is Copyright(c) 2021, Chris Reynolds.", _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
+            DrawStringCentre(_gfx,
+                "Source data is Copyright(c) 2011, Fiat Group Automobiles.  Code to produce this PDF is Copyright(c) 2021, Chris Reynolds.",
+                _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
             DrawStringRight(_gfx, $"Page: {_pageNumber}", _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
             _pageNumber++;
         }
+
         public Stream AddGroups(Catalogue catalogue)
         {
             _groupY = 0.0;
@@ -140,20 +156,15 @@ namespace ePerPartsListGenerator.Render
             var titleDoc = _doc;
             ZipArchive archive = null;
             var outputStream = new MemoryStream(16 * 1024 * 1024);
-            if (DocumentPerSection)
-            {
-                archive = new ZipArchive(outputStream, ZipArchiveMode.Create, true);
-            }
+            if (DocumentPerSection) archive = new ZipArchive(outputStream, ZipArchiveMode.Create, true);
 
             foreach (var group in catalogue.Groups)
             {
-                if (DocumentPerSection)
-                {
-                    _doc = new PdfDocument();
-                }
-                GroupsPages.Add(group.Code, _pageNumber);
+                if (DocumentPerSection) _doc = new PdfDocument();
+
+                _groupsPages.Add(group.Code, _pageNumber);
                 // Add section header page
-                DrawSectionHeaderPageHolder(group);
+                DrawSectionHeaderPageHolder();
                 var headerPage = _page;
                 AddTables(catalogue, group);
                 // we can go back and add the page numbers to the header page
@@ -162,11 +173,12 @@ namespace ePerPartsListGenerator.Render
                 {
                     // we need to save the document
                     //_doc.Save($"c:\\temp\\Parts_{catalogue.CatCode}_{group.Description}.pdf");
-                    var entry = archive.CreateEntry($"Parts_{group.Code}_{group.Description}.pdf", CompressionLevel.Optimal);
+                    var entry = archive.CreateEntry($"Parts_{group.Code}_{group.Description}.pdf",
+                        CompressionLevel.Optimal);
                     _doc.Save(entry.Open(), true);
-
                 }
             }
+
             // Go back and add contents to main page
             AddMainPageContents(catalogue, titleDoc);
 
@@ -195,17 +207,17 @@ namespace ePerPartsListGenerator.Render
             var y = DrawGroupListHeaders(_contentsY, _contentWidths, _punchMargin);
             foreach (var group in catalogue.Groups)
             {
-                var fields = new[] { group.Code, group.Description, GroupsPages[group.Code].ToString() };
+                var fields = new[] {group.Code, group.Description, _groupsPages[group.Code].ToString()};
                 var drawItems = FitTableItemsIntoColumns(_contentWidths, fields, _contentsFont);
                 y = DrawAllItems(y, _contentsFont, _contentWidths, _punchMargin, drawItems, _contentAlignments);
             }
         }
 
-        public void AddTables(Catalogue catalogue, Group group)
+        private void AddTables(Catalogue catalogue, Group group)
         {
             foreach (var table in group.Tables)
             {
-                TablesPages.Add(table.FullCode, _pageNumber);
+                _tablesPages.Add(table.FullCode, _pageNumber);
                 AddDrawings(catalogue, group, table);
             }
         }
@@ -213,17 +225,16 @@ namespace ePerPartsListGenerator.Render
         private List<double> GenerateColumnWidths(params double[] widths)
         {
             var returnList = new List<double>();
-            for (int i = 0; i < widths.Length; i++)
-            {
+            for (var i = 0; i < widths.Length; i++)
                 if (i < widths.Length - 1)
                     returnList.Add(_workingWidth * widths[i] - _littleGap);
                 else
                     returnList.Add(_workingWidth * widths[i] - _littleGap);
-            }
 
             return returnList;
         }
-        public void AddDrawings(Catalogue catalogue, Group group, Table table)
+
+        private void AddDrawings(Catalogue catalogue, Group group, Table table)
         {
             foreach (var drawing in table.Drawings)
             {
@@ -238,21 +249,23 @@ namespace ePerPartsListGenerator.Render
                 foreach (var p in drawing.Parts)
                 {
                     var drawItems = CreatePartsListRowData(p);
-                    if (y + (drawItems.Count * h) > GetHeight(_page, 90))
+                    if (y + drawItems.Count * h > GetHeight(_page, 90))
                     {
                         AddContinuedMarker(y);
                         y = StartNewDrawingPage(group, table, drawing);
                         y = DrawPartsTableHeaders(y, tableLeft);
                     }
+
                     if (lastRif != p.Rif)
                     {
                         gray = !gray;
                         lastRif = p.Rif;
                     }
+
                     if (gray)
-                    {
-                        _gfx.DrawRectangle(XBrushes.LightGray, new XRect(tableLeft, y, _partsListTotalWidth, h * drawItems.Count));
-                    }
+                        _gfx.DrawRectangle(XBrushes.LightGray,
+                            new XRect(tableLeft, y, _partsListTotalWidth, h * drawItems.Count));
+
                     y = DrawAllItems(y, _tableFont, _partsListWidths, tableLeft, drawItems, _partsListAlignments);
                 }
 
@@ -260,10 +273,13 @@ namespace ePerPartsListGenerator.Render
                 {
                     y = DrawLegendTableHeaders(y, tableLeft);
 
-                    y = AddListToLegend(drawing.ModificationList, catalogue.AllModifications, y, table, group, drawing, _tableFont, tableLeft);
+                    y = AddListToLegend(drawing.ModificationList, catalogue.AllModifications, y, table, group, drawing,
+                        _tableFont, tableLeft);
 
-                    AddListToLegend(drawing.CompatibilityList, catalogue.AllVariants, y, table, group, drawing, _tableFont, tableLeft);
+                    AddListToLegend(drawing.CompatibilityList, catalogue.AllVariants, y, table, group, drawing,
+                        _tableFont, tableLeft);
                 }
+
                 // There's chance that there are are sub-assemblies to draw
                 AddCliches(group, table, drawing, tableLeft);
             }
@@ -271,8 +287,12 @@ namespace ePerPartsListGenerator.Render
 
         private List<List<string>> CreatePartsListRowData(Part p)
         {
-            var fields = new[] { p.Rif.ToString(), p.PartNo, p.Description,
-                        string.Join(", ", p.Modification), string.Join(", ", p.Compatibility),p.Notes, p.Qty, p.ClicheCode != ""?"*": "" };
+            var fields = new[]
+            {
+                p.Rif.ToString(), p.PartNo, p.Description,
+                string.Join(", ", p.Modification), string.Join(", ", p.Compatibility), p.Notes, p.Qty,
+                p.ClicheCode != "" ? "*" : ""
+            };
             var drawItems = FitTableItemsIntoColumns(_partsListWidths, fields, _tableFont);
             return drawItems;
         }
@@ -292,21 +312,23 @@ namespace ePerPartsListGenerator.Render
                 foreach (var p in cliche.Parts)
                 {
                     var drawItems = CreatePartsListRowData(p);
-                    if (y + (drawItems.Count * h) > GetHeight(_page, 90))
+                    if (y + drawItems.Count * h > GetHeight(_page, 90))
                     {
                         AddContinuedMarker(y);
                         y = StartNewClichePage(group, table, drawing, cliche);
                         y = DrawPartsTableHeaders(y, tableLeft);
                     }
+
                     if (lastRif != p.Rif)
                     {
                         gray = !gray;
                         lastRif = p.Rif;
                     }
+
                     if (gray)
-                    {
-                        _gfx.DrawRectangle(XBrushes.LightGray, new XRect(tableLeft, y, _partsListTotalWidth, h * drawItems.Count));
-                    }
+                        _gfx.DrawRectangle(XBrushes.LightGray,
+                            new XRect(tableLeft, y, _partsListTotalWidth, h * drawItems.Count));
+
                     y = DrawAllItems(y, _tableFont, _partsListWidths, tableLeft, drawItems, _partsListAlignments);
                 }
             }
@@ -317,22 +339,25 @@ namespace ePerPartsListGenerator.Render
             DrawStringRight(_gfx, "Continued...", _punchMargin, y, _partsListTotalWidth, _tableFont);
         }
 
-        private double AddListToLegend(List<string> data, Dictionary<string, string> lookUps, double y, Table table, Group group, Drawing drawing, RenderFont font,
+        private double AddListToLegend(List<string> data, Dictionary<string, string> lookUps, double y, Table table,
+            Group group, Drawing drawing, RenderFont font,
             double tableLeft)
         {
             var h = font.Height(_gfx);
             foreach (var item in data.OrderBy(x => x))
             {
-                var fields = new[] { item, lookUps.ContainsKey(item) ? lookUps[item] : "" };
+                var fields = new[] {item, lookUps.ContainsKey(item) ? lookUps[item] : ""};
                 var drawItems = FitTableItemsIntoColumns(_legendListWidths, fields, font);
-                if (y + (drawItems.Count * h) > GetHeight(_page, 90))
+                if (y + drawItems.Count * h > GetHeight(_page, 90))
                 {
                     AddContinuedMarker(y);
                     y = StartNewDrawingPage(group, table, drawing);
                     y = DrawLegendTableHeaders(y, tableLeft);
                 }
+
                 y = DrawAllItems(y, font, _legendListWidths, tableLeft, drawItems, _legendListAlignments);
             }
+
             return y;
         }
 
@@ -343,6 +368,7 @@ namespace ePerPartsListGenerator.Render
                 _gfx.Dispose();
                 _gfx = null;
             }
+
             _page = _doc.AddPage();
             _gfx = XGraphics.FromPdfPage(_page);
             _page.Size = PdfSharp.PageSize.A4;
@@ -353,6 +379,7 @@ namespace ePerPartsListGenerator.Render
             y = DrawDrawing(drawing.ImagePath, y);
             return y;
         }
+
         private double StartNewClichePage(Group group, Table table, Drawing drawing, Cliche cliche)
         {
             if (_gfx != null)
@@ -360,6 +387,7 @@ namespace ePerPartsListGenerator.Render
                 _gfx.Dispose();
                 _gfx = null;
             }
+
             _page = _doc.AddPage();
             _gfx = XGraphics.FromPdfPage(_page);
             _page.Size = PdfSharp.PageSize.A4;
@@ -371,24 +399,29 @@ namespace ePerPartsListGenerator.Render
             return y;
         }
 
-        private double DrawAllItems(double y, RenderFont font, List<double> widths, double tableLeft, List<List<string>> drawItems, XStringFormat[] alignments)
+        private double DrawAllItems(double y, RenderFont font, List<double> widths, double tableLeft,
+            List<List<string>> drawItems, XStringFormat[] alignments)
         {
             var h = font.Height(_gfx);
             foreach (var line in drawItems)
             {
                 var x = tableLeft;
-                for (int i = 0; i < line.Count; i++)
+                for (var i = 0; i < line.Count; i++)
                 {
                     _gfx.DrawString(line[i], font.Font, XBrushes.Black,
                         new XRect(x, y + h / 16.0, widths[i], h + h / 8.0), alignments[i]);
                     x += widths[i];
                     x += _littleGap;
                 }
-                y += (h + h / 8.0);
+
+                y += h + h / 8.0;
             }
+
             return y;
         }
-        private double FitAndDrawAllItems(double y, RenderFont font, List<double> widths, double tableLeft, string[] drawItems, XStringFormat[] alignments)
+
+        private double FitAndDrawAllItems(double y, RenderFont font, List<double> widths, double tableLeft,
+            string[] drawItems, XStringFormat[] alignments)
         {
             var items = FitTableItemsIntoColumns(widths, drawItems, font);
             return DrawAllItems(y, font, widths, tableLeft, items, alignments);
@@ -400,41 +433,46 @@ namespace ePerPartsListGenerator.Render
             var rc = new List<List<string>>();
             // so work out if each column fits in its width, if not work out how many rows are needed
             // then return a 2D array of the split items
-            for (int i = 0; i < widths.Count; i++)
+            for (var i = 0; i < widths.Count; i++)
             {
                 var lines = BreakGroupIntoLines(widths[i], font, _gfx, fields[i]);
                 if (lines.Count > maxLines)
                     maxLines = lines.Count;
             }
-            for (int i = 0; i < maxLines; i++)
+
+            for (var i = 0; i < maxLines; i++)
             {
                 rc.Add(new List<string>());
-                for (int j = 0; j < widths.Count; j++)
+                for (var j = 0; j < widths.Count; j++)
                 {
                     var lines = BreakGroupIntoLines(widths[j], font, _gfx, fields[j]);
                     rc[i].Add(lines.Count - 1 < i ? "" : lines[i]);
                 }
             }
+
             return rc;
         }
 
         private double DrawPartsTableHeaders(double y, double tableLeft)
         {
-            var headings = new List<string> { "", "Part #", "Description", "Modification", "Compatibility", "Notes", "Qty", "Sub" };
+            var headings = new List<string>
+                {"", "Part #", "Description", "Modification", "Compatibility", "Notes", "Qty", "Sub"};
             return DrawTableHeaders(y, _partsListWidths, headings, tableLeft, _tableFont);
         }
+
         private double DrawLegendTableHeaders(double y, double tableLeft)
         {
-            var headings = new List<string> { "Legend", "Notes" };
+            var headings = new List<string> {"Legend", "Notes"};
             return DrawTableHeaders(y, _legendListWidths, headings, tableLeft, _tableFont);
         }
 
-        private double DrawTableHeaders(double y, List<double> widths, List<string> headers, double tableLeft, RenderFont font)
+        private double DrawTableHeaders(double y, List<double> widths, List<string> headers, double tableLeft,
+            RenderFont font)
         {
             var h = font.Height(_gfx);
             h += h / 8;
             var x = tableLeft;
-            for (int i = 0; i < widths.Count; i++)
+            for (var i = 0; i < widths.Count; i++)
             {
                 _gfx.DrawRectangle(XBrushes.Black, new XRect(x, y, widths[i], h));
                 _gfx.DrawString(headers[i], font.Font, XBrushes.White,
@@ -447,13 +485,13 @@ namespace ePerPartsListGenerator.Render
 
         private double DrawTableListHeaders(double y, List<double> widths, double tableLeft)
         {
-            var headings = new List<string> { "Table", "Description", "Page" };
+            var headings = new List<string> {"Table", "Description", "Page"};
             return DrawTableHeaders(y, widths, headings, tableLeft, _contentsFont);
         }
 
         private double DrawGroupListHeaders(double y, List<double> widths, double tableLeft)
         {
-            var headings = new List<string> { "Group", "Description", "Page" };
+            var headings = new List<string> {"Group", "Description", "Page"};
             return DrawTableHeaders(y, widths, headings, tableLeft, _contentsFont);
         }
 
@@ -467,18 +505,21 @@ namespace ePerPartsListGenerator.Render
                 allGroupsInTwoLines = true;
                 foreach (var group in _catalogue.Groups)
                 {
-                    List<string> lines = BreakGroupIntoLines(initialWidth, _groupFont, _gfx, group.Description);
+                    var lines = BreakGroupIntoLines(initialWidth, _groupFont, _gfx, group.Description);
                     if (lines.Count > 2)
                     {
                         allGroupsInTwoLines = false;
                         break;
                     }
                 }
+
                 if (!allGroupsInTwoLines)
                     initialWidth += GetWidth(_page, 0.5);
             }
+
             return initialWidth;
         }
+
         private List<string> BreakGroupIntoLines(double initialWidth, RenderFont font, XGraphics gfx, string group)
         {
             var parts = group.Split(' ').ToList();
@@ -496,11 +537,14 @@ namespace ePerPartsListGenerator.Render
                     // Need to write out old text
                     text = parts[0];
                 }
+
                 parts.RemoveAt(0);
             }
+
             lines.Add(text);
             return lines;
         }
+
         private double DrawDrawing(string imagePath, double startY)
         {
             var parts = imagePath.Split('/');
@@ -509,27 +553,26 @@ namespace ePerPartsListGenerator.Render
             if (parts.Length == 3)
             {
                 zipPath = Path.Combine(zipPath, parts[0]);
-                zipFileToExtract = parts[1] +"/"+ parts[2];
+                zipFileToExtract = parts[1] + "/" + parts[2];
             }
             else
             {
                 zipPath = Path.Combine(zipPath, parts[0]);
                 zipFileToExtract = parts[1];
             }
+
             zipPath = Path.ChangeExtension(zipPath, "res");
             XImage image = null;
             using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Read))
             {
                 var entry = archive.GetEntry(zipFileToExtract);
                 if (entry != null)
-                {
                     using (var ms = new MemoryStream())
                     {
                         entry.Open().CopyTo(ms);
                         ms.Position = 0;
                         image = XImage.FromStream(ms);
                     }
-                }
             }
 
             if (image == null) return startY;
@@ -537,14 +580,9 @@ namespace ePerPartsListGenerator.Render
             var xx = GetWidth(_page, 80) - (_groupsWidth + _littleGap + _punchMargin);
             var yy = xx;
             if (image.PixelWidth > image.PixelHeight)
-            {
-                yy = ((image.PixelHeight * xx) / image.PixelWidth);
-            }
+                yy = image.PixelHeight * xx / image.PixelWidth;
             else
-            {
-                xx = ((image.PixelWidth * yy) / image.PixelHeight);
-
-            }
+                xx = image.PixelWidth * yy / image.PixelHeight;
 
             var centreX = _punchMargin + GetWidth(_page, 80) / 2.0;
             _gfx.DrawImage(image, centreX - xx / 2, startY + _littleGap, xx, yy);
@@ -556,31 +594,34 @@ namespace ePerPartsListGenerator.Render
             var groupLineHeight = _groupFont.Height(_gfx);
             if (_lastGroup != group.Description)
             {
-                _groupY += (2 * groupLineHeight);
+                _groupY += 2 * groupLineHeight;
                 _lastGroup = group.Description;
             }
-            _gfx.DrawRectangle(XBrushes.Black, new XRect(_page.Width - _groupsWidth, _groupY, _groupsWidth, groupLineHeight * 2.0));
+
+            _gfx.DrawRectangle(XBrushes.Black,
+                new XRect(_page.Width - _groupsWidth, _groupY, _groupsWidth, groupLineHeight * 2.0));
             var lines = BreakGroupIntoLines(_groupsWidth, _groupFont, _gfx, group.Description);
             for (var i = 0; i < lines.Count; i++)
-            {
-
                 _gfx.DrawString(lines[i], _groupFont.Font, XBrushes.White,
                     new XRect(_page.Width - _groupsWidth, _groupY + i * groupLineHeight, _groupsWidth, _page.Height),
                     XStringFormats.TopLeft);
-            }
         }
+
         private double DrawString(XGraphics gfx, string str, double x, double y, RenderFont font)
         {
             var rect = gfx.MeasureString(str, font.Font);
-            gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, rect.Width, rect.Height), XStringFormats.TopLeft);
+            gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, rect.Width, rect.Height),
+                XStringFormats.TopLeft);
             return rect.Height;
         }
+
         private double DrawStringCentre(XGraphics gfx, string str, double x, double y, double w, RenderFont font)
         {
             var rect = gfx.MeasureString(str, font.Font);
             gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopCenter);
             return rect.Height;
         }
+
         // ReSharper disable once UnusedMethodReturnValue.Local
         private double DrawStringRight(XGraphics gfx, string str, double x, double y, double w, RenderFont font)
         {
@@ -588,6 +629,7 @@ namespace ePerPartsListGenerator.Render
             gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopRight);
             return rect.Height;
         }
+
         private double DrawDrawingPageTitle(Group group, Table table, Drawing drawing)
         {
             var startY = GetHeight(_page, 5);
@@ -595,22 +637,30 @@ namespace ePerPartsListGenerator.Render
             // Draw the text
             var drawString = $"{drawing.TableCode} - {table.Description} - {drawing.DrawingNo}";
             startY += DrawString(_gfx, drawString, _punchMargin, startY, _titleFont);
-            var di = new[] { "Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}" };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Group", $"[{group.Code}] {group.Description}" };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Table", $"[{drawing.TableCode}] {table.Description}" };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Variant", drawing.Variant.ToString() };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Revision", drawing.Revision.ToString() };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Modifications", drawing.Modifications };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Valid for", drawing.ValidFor };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
+            var di = new[] {"Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}"};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Group", $"[{group.Code}] {group.Description}"};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Table", $"[{drawing.TableCode}] {table.Description}"};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Variant", drawing.Variant.ToString()};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Revision", drawing.Revision.ToString()};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Modifications", drawing.Modifications};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Valid for", drawing.ValidFor};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
             return startY;
         }
+
         private double DrawClichePageTitle(Group group, Table table, Drawing drawing, Cliche cliche)
         {
             var startY = GetHeight(_page, 5);
@@ -618,45 +668,50 @@ namespace ePerPartsListGenerator.Render
             // Draw the text
             var drawString = $"{cliche.PartNo} - {cliche.Description} ";
             startY += DrawString(_gfx, drawString, _punchMargin, startY, _titleFont);
-            var di = new[] { "Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}" };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Group", $"[{group.Code}] {group.Description}" };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
-            di = new[] { "Table", $"[{drawing.TableCode}] {table.Description}" };
-            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di, _legendListAlignments);
+            var di = new[] {"Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}"};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Group", $"[{group.Code}] {group.Description}"};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
+            di = new[] {"Table", $"[{drawing.TableCode}] {table.Description}"};
+            startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
+                _legendListAlignments);
             return startY;
         }
-        public void DrawSectionHeaderPage(PdfPage page, Group group)
+
+        private void DrawSectionHeaderPage(PdfPage page, Group group)
         {
             _gfx = XGraphics.FromPdfPage(page);
             DrawGroupTags(group);
             var y = GetHeight(page, 10);
-            y += DrawStringCentre(_gfx, $"{group.Code} - {group.Description}", _punchMargin, y, page.Width - _punchMargin - _groupsWidth -_littleGap, _titleFont);
+            y += DrawStringCentre(_gfx, $"{group.Code} - {group.Description}", _punchMargin, y,
+                page.Width - _punchMargin - _groupsWidth - _littleGap, _titleFont);
             y = DrawDrawing(group.ImageName, y + 20);
 
             y = DrawTableListHeaders(y, _contentWidths, _punchMargin);
 
             foreach (var table in group.Tables)
             {
-                var fields = new[] { table.FullCode, table.Description, TablesPages[table.FullCode].ToString() };
+                var fields = new[] {table.FullCode, table.Description, _tablesPages[table.FullCode].ToString()};
                 var drawItems = FitTableItemsIntoColumns(_contentWidths, fields, _contentsFont);
                 y = DrawAllItems(y, _contentsFont, _contentWidths, _punchMargin, drawItems, _contentAlignments);
             }
-
         }
-        public void DrawSectionHeaderPageHolder(Group group)
+
+        private void DrawSectionHeaderPageHolder()
         {
             if (_gfx != null)
             {
                 _gfx.Dispose();
                 _gfx = null;
             }
+
             _page = _doc.AddPage();
             _gfx = XGraphics.FromPdfPage(_page);
             _page.Size = PdfSharp.PageSize.A4;
             _page.Orientation = PdfSharp.PageOrientation.Portrait;
             AddPageFooter();
         }
-
     }
 }

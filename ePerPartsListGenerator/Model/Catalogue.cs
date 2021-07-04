@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 using System.Collections.Generic;
 
 namespace ePerPartsListGenerator.Model
@@ -30,18 +31,19 @@ namespace ePerPartsListGenerator.Model
     /// the class hierarchy.  We also hold the details of all the modifications and variants
     /// used across the whole catalogue to save having to get them for each drawing
     /// </summary>
-    class Catalogue
+    internal class Catalogue
     {
         //public List<Drawing> Drawings;
         /// <summary>
         /// Maintain a list of the distinct groups used in the catalogue.  It is used to
         /// draw the quick access tabs down the side of the page
         /// </summary>
-        public List<Group> Groups;
-        public string Description;
-        public string CatCode;
-        public Dictionary<string, string> AllModifications;
-        public Dictionary<string, string> AllVariants;
+        internal List<Group> Groups;
+
+        internal string Description;
+        internal string CatCode;
+        internal Dictionary<string, string> AllModifications;
+        internal Dictionary<string, string> AllVariants;
         internal string ImagePath;
     }
 }

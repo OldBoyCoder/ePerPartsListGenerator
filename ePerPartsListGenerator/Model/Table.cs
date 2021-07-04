@@ -21,15 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 using System.Collections.Generic;
 
 namespace ePerPartsListGenerator.Model
 {
-    public class Table
+    internal class Table
     {
-        public int TableCode;
-        public string FullCode;
-        public string Description;
+        internal int TableCode;
+        internal string FullCode;
+        internal string Description;
         internal List<Drawing> Drawings;
     }
 }
