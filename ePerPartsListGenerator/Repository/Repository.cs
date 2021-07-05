@@ -367,7 +367,30 @@ namespace ePerPartsListGenerator.Repository
             }
         }
 
-        private void Close()
+        internal List<Catalogue> GetAllCatalogues()
+        {
+            Open();
+
+            var catalogues = new List<Catalogue>();
+            var sql = $"select C.CAT_COD, M.MK_DSC, MG.CMG_DSC, C.CAT_DSC from CATALOGUES C JOIN MAKES M ON M.MK_COD = C.MK_COD JOIN COMM_MODGRP MG ON MG.MK2_COD = C.MK2_COD AND MG.CMG_COD = C.CMG_COD order by M.MK_DSC, MG.CMG_DSC, C.CAT_DSC";
+            var cmd = new SqlCommand(sql, _conn);
+            var dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                var cat = new Catalogue
+                {
+                    Make = dr.GetString(1),
+                    CatCode = dr.GetString(0),
+                    Model = dr.GetString(2),
+                    Description = dr.GetString(3)
+                };
+                catalogues.Add(cat);
+            }
+
+            Close();
+            return catalogues;
+        }
+    private void Close()
         {
             _conn.Close();
         }

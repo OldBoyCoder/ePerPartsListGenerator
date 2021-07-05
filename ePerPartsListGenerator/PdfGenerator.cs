@@ -22,7 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System.Collections.Generic;
 using System.IO;
+using ePerPartsListGenerator.Model;
 using ePerPartsListGenerator.Render;
 
 namespace ePerPartsListGenerator
@@ -36,6 +38,13 @@ namespace ePerPartsListGenerator
             var renderer = new CatalogueRendererLandscape(cat) {DocumentPerSection = true};
             renderer.StartDocument();
             return renderer.AddGroups(cat);
+        }
+
+        public List<Catalogue> GetAllCatalogues(string languageCode)
+        {
+            var rep = new Repository.Repository(languageCode);
+            var catalogues = rep.GetAllCatalogues();
+            return catalogues;
         }
     }
 }

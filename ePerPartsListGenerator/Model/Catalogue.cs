@@ -31,7 +31,7 @@ namespace ePerPartsListGenerator.Model
     /// the class hierarchy.  We also hold the details of all the modifications and variants
     /// used across the whole catalogue to save having to get them for each drawing
     /// </summary>
-    internal class Catalogue
+    public class Catalogue
     {
         //public List<Drawing> Drawings;
         /// <summary>
@@ -40,10 +40,12 @@ namespace ePerPartsListGenerator.Model
         /// </summary>
         internal List<Group> Groups;
 
-        internal string Description;
-        internal string CatCode;
+        public string Description;
+        public string CatCode;
         internal Dictionary<string, string> AllModifications;
         internal Dictionary<string, string> AllVariants;
         internal string ImagePath;
+        public string Model;
+        public string Make;
     }
 }

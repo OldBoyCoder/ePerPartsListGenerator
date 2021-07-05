@@ -118,12 +118,12 @@ namespace ePerPartsListGenerator.Render
             AddPageFooter();
 
             var y = GetHeight(_page, 10);
-            y += DrawStringCentre(_gfx, "Parts list", _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            y += DrawStringCentre(_gfx, $"{_catalogue.CatCode} - {_catalogue.Description}", _punchMargin, y,
+            y += DrawStringCentre("Parts list", _punchMargin, y, _page.Width - _punchMargin, _titleFont);
+            y += DrawStringCentre($"{_catalogue.CatCode} - {_catalogue.Description}", _punchMargin, y,
                 _page.Width - _punchMargin, _titleFont);
-            y += DrawStringCentre(_gfx, $"Produced on {DateTime.Now:G}", _punchMargin, y, _page.Width - _punchMargin,
+            y += DrawStringCentre($"Produced on {DateTime.Now:G}", _punchMargin, y, _page.Width - _punchMargin,
                 _titleFont);
-            y += DrawStringCentre(_gfx, $"Using version {Assembly.GetExecutingAssembly().GetName().Version}",
+            y += DrawStringCentre($"Using version {Assembly.GetExecutingAssembly().GetName().Version}",
                 _punchMargin, y, _page.Width - _punchMargin, _titleFont);
             y = DrawDrawing(_catalogue.ImagePath, y + 20);
             _contentsY = y;
@@ -142,10 +142,10 @@ namespace ePerPartsListGenerator.Render
         private void AddPageFooter()
         {
             var y = GetHeight(_page, 95);
-            DrawStringCentre(_gfx,
+            DrawStringCentre(
                 "Source data is Copyright(c) 2011, Fiat Group Automobiles.  Code to produce this PDF is Copyright(c) 2021, Chris Reynolds.",
                 _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
-            DrawStringRight(_gfx, $"Page: {_pageNumber}", _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
+            DrawStringRight($"Page: {_pageNumber}", _punchMargin, y, _page.Width - _punchMargin * 2, _footerFont);
             _pageNumber++;
         }
 
@@ -172,7 +172,6 @@ namespace ePerPartsListGenerator.Render
                 if (DocumentPerSection && archive != null)
                 {
                     // we need to save the document
-                    //_doc.Save($"c:\\temp\\Parts_{catalogue.CatCode}_{group.Description}.pdf");
                     var entry = archive.CreateEntry($"Parts_{group.Code}_{group.Description}.pdf",
                         CompressionLevel.Optimal);
                     _doc.Save(entry.Open(), true);
@@ -336,7 +335,7 @@ namespace ePerPartsListGenerator.Render
 
         private void AddContinuedMarker(double y)
         {
-            DrawStringRight(_gfx, "Continued...", _punchMargin, y, _partsListTotalWidth, _tableFont);
+            DrawStringRight("Continued...", _punchMargin, y, _partsListTotalWidth, _tableFont);
         }
 
         private double AddListToLegend(List<string> data, Dictionary<string, string> lookUps, double y, Table table,
@@ -607,26 +606,26 @@ namespace ePerPartsListGenerator.Render
                     XStringFormats.TopLeft);
         }
 
-        private double DrawString(XGraphics gfx, string str, double x, double y, RenderFont font)
+        private double DrawString(string str, double x, double y, RenderFont font)
         {
-            var rect = gfx.MeasureString(str, font.Font);
-            gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, rect.Width, rect.Height),
+            var rect = _gfx.MeasureString(str, font.Font);
+            _gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, rect.Width, rect.Height),
                 XStringFormats.TopLeft);
             return rect.Height;
         }
 
-        private double DrawStringCentre(XGraphics gfx, string str, double x, double y, double w, RenderFont font)
+        private double DrawStringCentre(string str, double x, double y, double w, RenderFont font)
         {
-            var rect = gfx.MeasureString(str, font.Font);
-            gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopCenter);
+            var rect = _gfx.MeasureString(str, font.Font);
+            _gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopCenter);
             return rect.Height;
         }
 
         // ReSharper disable once UnusedMethodReturnValue.Local
-        private double DrawStringRight(XGraphics gfx, string str, double x, double y, double w, RenderFont font)
+        private double DrawStringRight(string str, double x, double y, double w, RenderFont font)
         {
-            var rect = gfx.MeasureString(str, font.Font);
-            gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopRight);
+            var rect = _gfx.MeasureString(str, font.Font);
+            _gfx.DrawString(str, font.Font, XBrushes.Black, new XRect(x, y, w, rect.Height), XStringFormats.TopRight);
             return rect.Height;
         }
 
@@ -636,7 +635,7 @@ namespace ePerPartsListGenerator.Render
             // Create a font
             // Draw the text
             var drawString = $"{drawing.TableCode} - {table.Description} - {drawing.DrawingNo}";
-            startY += DrawString(_gfx, drawString, _punchMargin, startY, _titleFont);
+            startY += DrawString(drawString, _punchMargin, startY, _titleFont);
             var di = new[] {"Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}"};
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
@@ -667,7 +666,7 @@ namespace ePerPartsListGenerator.Render
             // Create a font
             // Draw the text
             var drawString = $"{cliche.PartNo} - {cliche.Description} ";
-            startY += DrawString(_gfx, drawString, _punchMargin, startY, _titleFont);
+            startY += DrawString(drawString, _punchMargin, startY, _titleFont);
             var di = new[] {"Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}"};
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
@@ -685,7 +684,7 @@ namespace ePerPartsListGenerator.Render
             _gfx = XGraphics.FromPdfPage(page);
             DrawGroupTags(group);
             var y = GetHeight(page, 10);
-            y += DrawStringCentre(_gfx, $"{group.Code} - {group.Description}", _punchMargin, y,
+            y += DrawStringCentre($"{group.Code} - {group.Description}", _punchMargin, y,
                 page.Width - _punchMargin - _groupsWidth - _littleGap, _titleFont);
             y = DrawDrawing(group.ImageName, y + 20);
 

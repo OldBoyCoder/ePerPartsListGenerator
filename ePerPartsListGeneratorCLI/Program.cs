@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System;
 using System.IO;
 
 namespace ePerPartsListGeneratorCLI
@@ -31,11 +32,18 @@ namespace ePerPartsListGeneratorCLI
         private static void Main()
         {
             var pdfGen = new ePerPartsListGenerator.PdfGenerator();
-            var stream = pdfGen.CreatePartsListPdf("PK", "3"); //2J
-            using (var file = new FileStream(@"c:\temp\parts.zip", FileMode.Create, FileAccess.Write))
+            var cats = pdfGen.GetAllCatalogues("3");
+            foreach (var cat in cats)
             {
-                stream.CopyTo(file);
+                Console.WriteLine($"{cat.Make} {cat.Model} {cat.Description} {cat.CatCode}");
             }
+
+            Console.ReadLine();
+            //var stream = pdfGen.CreatePartsListPdf("PK", "3"); //2J
+            //using (var file = new FileStream(@"c:\temp\parts.zip", FileMode.Create, FileAccess.Write))
+            //{
+            //    stream.CopyTo(file);
+            //}
         }
     }
 }
