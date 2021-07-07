@@ -27,11 +27,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ePerPartsListGeneratorCLI")]
+[assembly: AssemblyTitle("ePerLoadImagesToDatabase")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ePerPartsListGeneratorCLI")]
+[assembly: AssemblyProduct("ePerLoadImagesToDatabase")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -42,7 +42,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("988d1a0c-648d-4d81-b26b-676d073701b5")]
+[assembly: Guid("41d0a68d-bdfc-4b22-8ca2-45c429fe20f1")]
 
 // Version information for an assembly consists of the following four values:
 //

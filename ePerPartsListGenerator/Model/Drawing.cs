@@ -21,8 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 using System.Collections.Generic;
+using System.IO;
 
 namespace ePerPartsListGenerator.Model
 {
@@ -35,7 +35,7 @@ namespace ePerPartsListGenerator.Model
         internal int DrawingNo;
         internal int Revision;
         internal int Variant;
-        internal string ImagePath;
+        internal MemoryStream ImageStream;
         internal string TableCode;
         internal List<Part> Parts;
         internal readonly List<string> CompatibilityList = new List<string>();

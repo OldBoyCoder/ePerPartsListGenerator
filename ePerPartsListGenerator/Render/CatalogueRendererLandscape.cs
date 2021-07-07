@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,7 +57,6 @@ namespace ePerPartsListGenerator.Render
         private RenderFont _groupFont;
         private double _workingWidth;
         private double _partsListTotalWidth;
-        private const string PathToImages = @"C:\Program Files (x86)\Fiat\ePER\data\images";
 
         private readonly XStringFormat[] _partsListAlignments =
         {
@@ -66,7 +64,7 @@ namespace ePerPartsListGenerator.Render
             XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopLeft
         };
 
-        private readonly XStringFormat[] _legendListAlignments = {XStringFormats.TopLeft, XStringFormats.TopLeft};
+        private readonly XStringFormat[] _legendListAlignments = { XStringFormats.TopLeft, XStringFormats.TopLeft };
 
         private readonly XStringFormat[] _contentAlignments =
             {XStringFormats.TopLeft, XStringFormats.TopLeft, XStringFormats.TopRight};
@@ -125,7 +123,8 @@ namespace ePerPartsListGenerator.Render
                 _titleFont);
             y += DrawStringCentre($"Using version {Assembly.GetExecutingAssembly().GetName().Version}",
                 _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            y = DrawDrawing(_catalogue.ImagePath, y + 20);
+            //y = DrawDrawing(_catalogue.ImagePath, y + 20);
+            y = DrawDrawingFromStream(_catalogue.ImageBytes, y + 20);
             _contentsY = y;
         }
 
@@ -206,7 +205,7 @@ namespace ePerPartsListGenerator.Render
             var y = DrawGroupListHeaders(_contentsY, _contentWidths, _punchMargin);
             foreach (var group in catalogue.Groups)
             {
-                var fields = new[] {group.Code, group.Description, _groupsPages[group.Code].ToString()};
+                var fields = new[] { group.Code, group.Description, _groupsPages[group.Code].ToString() };
                 var drawItems = FitTableItemsIntoColumns(_contentWidths, fields, _contentsFont);
                 y = DrawAllItems(y, _contentsFont, _contentWidths, _punchMargin, drawItems, _contentAlignments);
             }
@@ -345,7 +344,7 @@ namespace ePerPartsListGenerator.Render
             var h = font.Height(_gfx);
             foreach (var item in data.OrderBy(x => x))
             {
-                var fields = new[] {item, lookUps.ContainsKey(item) ? lookUps[item] : ""};
+                var fields = new[] { item, lookUps.ContainsKey(item) ? lookUps[item] : "" };
                 var drawItems = FitTableItemsIntoColumns(_legendListWidths, fields, font);
                 if (y + drawItems.Count * h > GetHeight(_page, 90))
                 {
@@ -375,7 +374,7 @@ namespace ePerPartsListGenerator.Render
             AddPageFooter();
             DrawGroupTags(group);
             var y = DrawDrawingPageTitle(group, table, drawing);
-            y = DrawDrawing(drawing.ImagePath, y);
+            y = DrawDrawingFromStream(drawing.ImageStream, y);
             return y;
         }
 
@@ -394,7 +393,7 @@ namespace ePerPartsListGenerator.Render
             AddPageFooter();
             DrawGroupTags(group);
             var y = DrawClichePageTitle(group, table, drawing, cliche);
-            y = DrawDrawing(cliche.ImagePath, y);
+            y = DrawDrawingFromStream(cliche.ImageStream, y);
             return y;
         }
 
@@ -461,7 +460,7 @@ namespace ePerPartsListGenerator.Render
 
         private double DrawLegendTableHeaders(double y, double tableLeft)
         {
-            var headings = new List<string> {"Legend", "Notes"};
+            var headings = new List<string> { "Legend", "Notes" };
             return DrawTableHeaders(y, _legendListWidths, headings, tableLeft, _tableFont);
         }
 
@@ -484,13 +483,13 @@ namespace ePerPartsListGenerator.Render
 
         private double DrawTableListHeaders(double y, List<double> widths, double tableLeft)
         {
-            var headings = new List<string> {"Table", "Description", "Page"};
+            var headings = new List<string> { "Table", "Description", "Page" };
             return DrawTableHeaders(y, widths, headings, tableLeft, _contentsFont);
         }
 
         private double DrawGroupListHeaders(double y, List<double> widths, double tableLeft)
         {
-            var headings = new List<string> {"Group", "Description", "Page"};
+            var headings = new List<string> { "Group", "Description", "Page" };
             return DrawTableHeaders(y, widths, headings, tableLeft, _contentsFont);
         }
 
@@ -544,35 +543,9 @@ namespace ePerPartsListGenerator.Render
             return lines;
         }
 
-        private double DrawDrawing(string imagePath, double startY)
+        private double DrawDrawingFromStream(MemoryStream imagePath, double startY)
         {
-            var parts = imagePath.Split('/');
-            var zipPath = PathToImages;
-            string zipFileToExtract;
-            if (parts.Length == 3)
-            {
-                zipPath = Path.Combine(zipPath, parts[0]);
-                zipFileToExtract = parts[1] + "/" + parts[2];
-            }
-            else
-            {
-                zipPath = Path.Combine(zipPath, parts[0]);
-                zipFileToExtract = parts[1];
-            }
-
-            zipPath = Path.ChangeExtension(zipPath, "res");
-            XImage image = null;
-            using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Read))
-            {
-                var entry = archive.GetEntry(zipFileToExtract);
-                if (entry != null)
-                    using (var ms = new MemoryStream())
-                    {
-                        entry.Open().CopyTo(ms);
-                        ms.Position = 0;
-                        image = XImage.FromStream(ms);
-                    }
-            }
+            var image = XImage.FromStream(imagePath);
 
             if (image == null) return startY;
 
@@ -636,25 +609,25 @@ namespace ePerPartsListGenerator.Render
             // Draw the text
             var drawString = $"{drawing.TableCode} - {table.Description} - {drawing.DrawingNo}";
             startY += DrawString(drawString, _punchMargin, startY, _titleFont);
-            var di = new[] {"Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}"};
+            var di = new[] { "Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Group", $"[{group.Code}] {group.Description}"};
+            di = new[] { "Group", $"[{group.Code}] {group.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Table", $"[{drawing.TableCode}] {table.Description}"};
+            di = new[] { "Table", $"[{drawing.TableCode}] {table.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Variant", drawing.Variant.ToString()};
+            di = new[] { "Variant", drawing.Variant.ToString() };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Revision", drawing.Revision.ToString()};
+            di = new[] { "Revision", drawing.Revision.ToString() };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Modifications", drawing.Modifications};
+            di = new[] { "Modifications", drawing.Modifications };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Valid for", drawing.ValidFor};
+            di = new[] { "Valid for", drawing.ValidFor };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
             return startY;
@@ -667,13 +640,13 @@ namespace ePerPartsListGenerator.Render
             // Draw the text
             var drawString = $"{cliche.PartNo} - {cliche.Description} ";
             startY += DrawString(drawString, _punchMargin, startY, _titleFont);
-            var di = new[] {"Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}"};
+            var di = new[] { "Catalogue", $"{_catalogue.CatCode} - {_catalogue.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Group", $"[{group.Code}] {group.Description}"};
+            di = new[] { "Group", $"[{group.Code}] {group.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
-            di = new[] {"Table", $"[{drawing.TableCode}] {table.Description}"};
+            di = new[] { "Table", $"[{drawing.TableCode}] {table.Description}" };
             startY = FitAndDrawAllItems(startY, _contentsFont, _legendListWidths, _punchMargin, di,
                 _legendListAlignments);
             return startY;
@@ -686,13 +659,13 @@ namespace ePerPartsListGenerator.Render
             var y = GetHeight(page, 10);
             y += DrawStringCentre($"{group.Code} - {group.Description}", _punchMargin, y,
                 page.Width - _punchMargin - _groupsWidth - _littleGap, _titleFont);
-            y = DrawDrawing(group.ImageName, y + 20);
+            y = DrawDrawingFromStream(group.ImageStream, y + 20);
 
             y = DrawTableListHeaders(y, _contentWidths, _punchMargin);
 
             foreach (var table in group.Tables)
             {
-                var fields = new[] {table.FullCode, table.Description, _tablesPages[table.FullCode].ToString()};
+                var fields = new[] { table.FullCode, table.Description, _tablesPages[table.FullCode].ToString() };
                 var drawItems = FitTableItemsIntoColumns(_contentWidths, fields, _contentsFont);
                 y = DrawAllItems(y, _contentsFont, _contentWidths, _punchMargin, drawItems, _contentAlignments);
             }

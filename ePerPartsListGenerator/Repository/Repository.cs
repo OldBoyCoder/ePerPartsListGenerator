@@ -21,9 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using ePerPartsListGenerator.Model;
 
@@ -45,22 +45,34 @@ namespace ePerPartsListGenerator.Repository
         {
             var cb = new SqlConnectionStringBuilder
             {
-                InitialCatalog = "ePer", DataSource = "localhost", IntegratedSecurity = true
+                InitialCatalog = "ePer",
+                DataSource = "localhost",
+                IntegratedSecurity = true
             };
             _conn = new SqlConnection(cb.ConnectionString);
             _conn.Open();
         }
 
+        private MemoryStream GetColumnAsStream(SqlDataReader reader, int ordinal)
+        {
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var blob = new byte[(reader.GetBytes(ordinal, 0, null, 0, int.MaxValue))];
+            reader.GetBytes(ordinal, 0, blob, 0, blob.Length);
+            var newStream = new MemoryStream();
+            newStream.Write(blob, 0, blob.Length);
+            return newStream;
+
+        }
         private Catalogue ReadCatalogue(string catCode)
         {
-            var sql = $"select CAT_DSC, IMG_NAME from CATALOGUES where cat_cod = '{catCode}'";
+            var sql = $"select CAT_DSC, I.IMG_BYTES from CATALOGUES C JOIN IMG_DATA I ON 'L_EPERFIG/' + REPLACE(C.IMG_NAME, 'jpg', 'png') = I.IMG_PATH where cat_cod = '{catCode}'";
             var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             var cat = new Catalogue();
             if (dr.Read())
             {
                 cat.Description = dr.GetString(0);
-                cat.ImagePath = @"L_EPERFIG/" + dr.GetString(1);
+                cat.ImageBytes = GetColumnAsStream(dr, 1);
             }
 
             dr.Close();
@@ -78,7 +90,7 @@ namespace ePerPartsListGenerator.Repository
             foreach (var group in cat.Groups)
             {
                 GetGroupTables(cat, group);
-                foreach (var table in group.Tables) 
+                foreach (var table in group.Tables)
                     GetTableDrawings(cat, group, table);
             }
 
@@ -90,9 +102,10 @@ namespace ePerPartsListGenerator.Repository
         {
             table.Drawings = new List<Drawing>();
             var sql =
-                " SELECT DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, DRAWINGS.IMG_PATH, " +
+                " SELECT DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, I.IMG_BYTES, " +
                 "DRAWINGS.MODIF, ISNULL(Drawings.PATTERN, ''), TABLE_COD, SGS_COD " +
                 "FROM DRAWINGS " +
+                "JOIN IMG_DATA I ON I.IMG_PATH = DRAWINGS.IMG_PATH " +
                 $"WHERE DRAWINGS.CAT_COD = '{catalogue.CatCode}' AND GRP_COD = {group.Code} AND SGRP_COD = {table.TableCode} " +
                 //"and(PATTERN LIKE '%M2%' or PATTERN IS NULL) "+
                 "ORDER BY DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE DESC, DRAWINGS.REVISIONE DESC";
@@ -104,7 +117,7 @@ namespace ePerPartsListGenerator.Repository
                     var d = new Drawing
                     {
                         DrawingNo = dr.GetInt16(0),
-                        ImagePath = dr.GetString(3),
+                        ImageStream = GetColumnAsStream(dr, 3),
                         Revision = dr.GetInt16(2),
                         Variant = dr.GetInt16(1),
                         TableCode = dr.GetString(6),
@@ -128,7 +141,7 @@ namespace ePerPartsListGenerator.Repository
                     }
 
                     d.ValidFor = dr.GetString(5);
-                    d.CompatibilityList.AddRange(d.ValidFor.Split(new[] {',', '+', '(', ')', ' ', '!', '\n'},
+                    d.CompatibilityList.AddRange(d.ValidFor.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' },
                         System.StringSplitOptions.RemoveEmptyEntries));
 
                     table.Drawings.Add(d);
@@ -150,7 +163,7 @@ namespace ePerPartsListGenerator.Repository
             {
                 while (dr.Read())
                 {
-                    var t = new Table {Description = dr.GetString(1), TableCode = dr.GetInt16(0)};
+                    var t = new Table { Description = dr.GetString(1), TableCode = dr.GetInt16(0) };
                     t.FullCode = group.Code + t.TableCode.ToString("00");
                     group.Tables.Add(t);
                 }
@@ -208,7 +221,7 @@ namespace ePerPartsListGenerator.Repository
         {
             var d = new List<Group>();
             var sql =
-                $"SELECT G.GRP_COD, ISNULL(IMG_NAME, ''), GD.GRP_DSC FROM GROUPS G JOIN GROUPS_DSC GD ON GD.GRP_COD = G.GRP_COD AND LNG_COD = '{_languageCode}'  where cat_cod = '{cat.CatCode}' order by G.GRP_COD";
+                $"SELECT G.GRP_COD, IMG_BYTES, GD.GRP_DSC FROM GROUPS G JOIN GROUPS_DSC GD ON GD.GRP_COD = G.GRP_COD AND LNG_COD = '{_languageCode}' JOIN IMG_DATA I ON I.IMG_PATH = 'L_EPERFIG/' + REPLACE(G.IMG_NAME, 'jpg', 'png') where cat_cod = '{cat.CatCode}' order by G.GRP_COD";
             var cmd = new SqlCommand(sql, _conn);
             using (var dr = cmd.ExecuteReader())
             {
@@ -217,7 +230,7 @@ namespace ePerPartsListGenerator.Repository
                     var g = new Group
                     {
                         Code = dr.GetString(0),
-                        ImageName = @"L_EPERFIG/" + dr.GetString(1),
+                        ImageStream = GetColumnAsStream(dr, 1),
                         Description = dr.GetString(2)
                     };
                     d.Add(g);
@@ -232,11 +245,12 @@ namespace ePerPartsListGenerator.Repository
         private void AddParts(string catCode, Group group, Table table, Drawing d)
         {
             var sql =
-                "select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, D.TBD_QTY, D.TBD_VAL_FORMULA, ISNULL(NTS.NTS_DSC, ''), ISNULL(CL.CLH_COD, ''), ISNULL(CL.IMG_PATH, '') " +
+                "select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +ISNULL(DAD.DSC, '')), D.MODIF, ISNULL(D.TBD_QTY, ''), D.TBD_VAL_FORMULA, ISNULL(NTS.NTS_DSC, ''), ISNULL(CL.CLH_COD, ''), I.IMG_BYTES " +
                 $"from TBDATA D  JOIN CODES_DSC C ON C.CDS_COD = D.CDS_COD AND LNG_COD = '{_languageCode}' " +
                 $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON DAD.COD = D.TBD_AGG_DSC AND DAD.LNG_COD = '{_languageCode}'  " +
                 $"LEFT OUTER JOIN [NOTES_DSC] NTS ON NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '{_languageCode}'  " +
                 "LEFT OUTER JOIN [CLICHE] CL ON Cl.CPLX_PRT_COD = D.PRT_COD " +
+                "LEFT OUTER JOIN [IMG_DATA] I ON CL.IMG_PATH = I.IMG_PATH " +
                 $"where CAT_COD = '{catCode}' and grp_COD = '{group.Code}' AND SGRP_COD = {table.TableCode} AND SGS_COD = {d.SgsCode} and VARIANTE = {d.Variant}  order by TBD_RIF, TBD_SEQ";
             d.Parts = new List<Part>();
             var cmd = new SqlCommand(sql, _conn);
@@ -244,7 +258,7 @@ namespace ePerPartsListGenerator.Repository
             {
                 while (dr.Read())
                 {
-                    var p = new Part {Description = dr.GetString(2), Modification = new List<string>()};
+                    var p = new Part { Description = dr.GetString(2), Modification = new List<string>() };
                     if (!dr.IsDBNull(3))
                     {
                         var mods = dr.GetString(3);
@@ -264,7 +278,7 @@ namespace ePerPartsListGenerator.Repository
                     if (!dr.IsDBNull(5))
                     {
                         var compatibility = dr.GetString(5);
-                        p.Compatibility.AddRange(compatibility.Split(new[] {',', '+', '(', ')', ' ', '!', '\n'},
+                        p.Compatibility.AddRange(compatibility.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' },
                             System.StringSplitOptions.RemoveEmptyEntries));
                         foreach (var c in p.Compatibility)
                             if (!d.CompatibilityList.Contains(c))
@@ -279,7 +293,7 @@ namespace ePerPartsListGenerator.Repository
                             d.Cliches.Add(p.PartNo, new Cliche(p.ClicheCode));
                         d.Cliches[p.PartNo].PartNo = p.PartNo;
                         d.Cliches[p.PartNo].Description = p.Description;
-                        d.Cliches[p.PartNo].ImagePath = dr.GetString(8);
+                        d.Cliches[p.PartNo].ImageStream = GetColumnAsStream(dr, 8);
                     }
 
                     d.Parts.Add(p);
@@ -307,7 +321,7 @@ namespace ePerPartsListGenerator.Repository
                 item.Value.Parts = new List<Part>();
                 while (dr.Read())
                 {
-                    var p = new Part {Description = dr.GetString(2), Modification = new List<string>()};
+                    var p = new Part { Description = dr.GetString(2), Modification = new List<string>() };
                     if (!dr.IsDBNull(3))
                     {
                         var mods = dr.GetString(3);
@@ -327,7 +341,7 @@ namespace ePerPartsListGenerator.Repository
                     if (!dr.IsDBNull(5))
                     {
                         var compatibility = dr.GetString(5);
-                        p.Compatibility.AddRange(compatibility.Split(new[] {',', '+', '(', ')', ' ', '!', '\n'},
+                        p.Compatibility.AddRange(compatibility.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' },
                             System.StringSplitOptions.RemoveEmptyEntries));
                         foreach (var c in p.Compatibility)
                             if (!d.CompatibilityList.Contains(c))
@@ -372,7 +386,7 @@ namespace ePerPartsListGenerator.Repository
             Open();
 
             var catalogues = new List<Catalogue>();
-            var sql = $"select C.CAT_COD, M.MK_DSC, MG.CMG_DSC, C.CAT_DSC from CATALOGUES C JOIN MAKES M ON M.MK_COD = C.MK_COD JOIN COMM_MODGRP MG ON MG.MK2_COD = C.MK2_COD AND MG.CMG_COD = C.CMG_COD order by M.MK_DSC, MG.CMG_DSC, C.CAT_DSC";
+            var sql = "select C.CAT_COD, M.MK_DSC, MG.CMG_DSC, C.CAT_DSC from CATALOGUES C JOIN MAKES M ON M.MK_COD = C.MK_COD JOIN COMM_MODGRP MG ON MG.MK2_COD = C.MK2_COD AND MG.CMG_COD = C.CMG_COD order by M.MK_DSC, MG.CMG_DSC, C.CAT_DSC";
             var cmd = new SqlCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             while (dr.Read())
@@ -390,7 +404,7 @@ namespace ePerPartsListGenerator.Repository
             Close();
             return catalogues;
         }
-    private void Close()
+        private void Close()
         {
             _conn.Close();
         }
