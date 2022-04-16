@@ -14,6 +14,8 @@ The ePer system uses an MS-Access database to hold information about the parts d
 For the sake of my sanity I moved this to a SQL Server DB.  The SQL queries are all centralised in one file
 so can easily be changed to use a different DBMS if required.
 
+https://www.microsoft.com/en-us/download/details.aspx?id=54255
+
 ## Hierarchy of a drawing
 
 Consider drawing 55523/02 for the Nuovo Ducato (2J).  This drawing has one variant but 3 revisions

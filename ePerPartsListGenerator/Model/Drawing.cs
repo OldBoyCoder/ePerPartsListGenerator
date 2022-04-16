@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace ePerPartsListGenerator.Model
@@ -30,6 +31,7 @@ namespace ePerPartsListGenerator.Model
     /// A Drawings is the main entity in the parts book.
     /// It represents a single drawing of a section of the car
     /// </summary>
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     internal class Drawing
     {
         internal int DrawingNo;
@@ -49,5 +51,10 @@ namespace ePerPartsListGenerator.Model
         internal readonly Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
 
         internal short SgsCode;
+
+        private string GetDebuggerDisplay()
+        {
+            return $"{TableCode} {SgsCode} {DrawingNo}";
+        }
     }
 }

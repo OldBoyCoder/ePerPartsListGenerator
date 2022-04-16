@@ -21,23 +21,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+using ePerPartsListGenerator.Model;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 
-namespace ePerPartsListGenerator.Model
+namespace ePerPartsListGenerator.Repository
 {
-    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    internal class Group
+    public interface IRepository
     {
-        internal string Code;
-        internal MemoryStream ImageStream;
-        internal string Description;
-        internal List<Table> Tables;
-
-        private string GetDebuggerDisplay()
-        {
-            return $"{Code} {Description}";
-        }
+        Catalogue GetCatalogue(string catCode);
+        List<Catalogue> GetAllCatalogues();
     }
 }

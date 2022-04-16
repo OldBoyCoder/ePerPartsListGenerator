@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+using ePerPartsListGenerator.Repository;
 using System;
 using System.IO;
 using System.Linq;
@@ -32,8 +33,9 @@ namespace ePerPartsListGeneratorCLI
         private static void Main()
         {
             var html = "<html>";
-            var pdfGen = new ePerPartsListGenerator.PdfGenerator();
-            var cats = pdfGen.GetAllCatalogues("3");
+            var repository = new AccessRelease20Repository("3");
+            var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository);
+            var cats = pdfGen.GetAllCatalogues();
             var lastMake = "";
             var lastModel = "";
             foreach (var cat in cats.OrderBy(x=>x.Make).ThenBy(x=>x.Model).ThenBy(x=>x.Description))
@@ -58,11 +60,11 @@ namespace ePerPartsListGeneratorCLI
                 var fileName = $"c:\\temp\\parts_{cat.CatCode}.zip";
                 html += $"<p>{cat.Description} - <a href=\"{fileName}\">ZIP</a></p>";
                 Console.WriteLine($"{DateTime.Now}: {cat.Make} {cat.Model} {cat.Description} {cat.CatCode}");
-                var stream = pdfGen.CreatePartsListPdf(cat.CatCode, "3"); //2J
-                using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                {
-                    stream.CopyTo(file);
-                }
+                var stream = pdfGen.CreatePartsListPdf(cat.CatCode); //2J
+                //using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                //{
+                //    stream.CopyTo(file);
+                //}
             }
             html += "</details></details></html>";
             File.WriteAllText("c:\\temp\\summary.html", html);

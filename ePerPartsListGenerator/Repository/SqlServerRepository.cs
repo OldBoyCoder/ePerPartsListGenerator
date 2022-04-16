@@ -31,12 +31,12 @@ using ePerPartsListGenerator.Model;
 
 namespace ePerPartsListGenerator.Repository
 {
-    internal class Repository
+    internal class SqlServerRepository : IRepository
     {
         private SqlConnection _conn;
         private readonly string _languageCode;
 
-        internal Repository(string languageCode)
+        internal SqlServerRepository(string languageCode)
         {
             _languageCode = languageCode;
         }
@@ -381,7 +381,7 @@ namespace ePerPartsListGenerator.Repository
             }
         }
 
-        internal List<Catalogue> GetAllCatalogues()
+        public List<Catalogue> GetAllCatalogues()
         {
             Open();
 
