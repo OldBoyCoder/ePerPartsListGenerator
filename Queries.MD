@@ -1,3 +1,6 @@
+# Queries extracted from the Java code
+
+These are the queries embedded in the Release 20 Java code
 ## GET_DESCR_GROUP
 
     SELECT GRP_DSC 
@@ -166,224 +169,234 @@ This query is built conditionally depending on the search parameters
 
 ## RIC_getListSubGroup
 
-             SELECT A.SGRP_COD, A.SGS_COD, B.SGRP_DSC 
-             FROM SGSEQS A, SUBGROUPS_DSC B 
-             WHERE A.CAT_COD = ? 
-             AND A.GRP_COD = ? 
-            if (bl) {
-                 AND A.SGRP_COD = ? 
-            }
-             AND B.LNG_COD = ? 
-             AND B.GRP_COD = A.GRP_COD 
-             AND B.SGRP_COD = A.SGRP_COD 
-             ORDER BY A.SGRP_COD, A.SGS_COD 
+    SELECT A.SGRP_COD, A.SGS_COD, B.SGRP_DSC 
+        FROM SGSEQS A, SUBGROUPS_DSC B 
+        WHERE A.CAT_COD = ? 
+        AND A.GRP_COD = ? 
+        AND A.SGRP_COD = ? 
+        AND B.LNG_COD = ? 
+        AND B.GRP_COD = A.GRP_COD 
+        AND B.SGRP_COD = A.SGRP_COD 
+        ORDER BY A.SGRP_COD, A.SGS_COD 
 
 ## GET_MAP_DATA
 
-             SELECT DISTINCT A.MAP_NAME, B.MPI_OFFX, B.MPI_OFFY,C.GRP_COD,C.MPG_INDEX,C.MPG_TX,C.MPG_TY 
-             FROM CATALOGUES A, MAP_INFO B, MAP_GRP C, SGSEQS D 
-             WHERE A.CAT_COD = ? 
-             AND A.MAP_NAME = B.MAP_NAME 
-             AND A.MAP_NAME = C.MAP_NAME 
-             AND A.CAT_COD = D.CAT_COD 
-             AND C.GRP_COD = D.GRP_COD 
+    SELECT DISTINCT A.MAP_NAME, B.MPI_OFFX, B.MPI_OFFY,C.GRP_COD,C.MPG_INDEX,C.MPG_TX,C.MPG_TY 
+        FROM CATALOGUES A, MAP_INFO B, MAP_GRP C, SGSEQS D 
+        WHERE A.CAT_COD = ? 
+        AND A.MAP_NAME = B.MAP_NAME 
+        AND A.MAP_NAME = C.MAP_NAME 
+        AND A.CAT_COD = D.CAT_COD 
+        AND C.GRP_COD = D.GRP_COD 
 
 ## GET_MAP_FIGURE
 
-             SELECT DISTINCT MAP_SGRP
-             FROM MAP_VET
-             WHERE CAT_COD = ? 
-             AND GRP_COD = ? 
+    SELECT DISTINCT MAP_SGRP
+        FROM MAP_VET
+        WHERE CAT_COD = ? 
+        AND GRP_COD = ? 
 
 ## LIST_PART_DATA
 
-         SELECT A.TBD_RIF, C.CDS_DSC, A.COL_COD, A.TBD_SEQ, A.PRT_COD, 
-         A.NTS_COD, A.TBD_AGG_DSC, A.TBD_QTY, A.TBD_NEW_FLAG ,A.PRT_FAM_COD,A.PRT_MASK_MAK 
-         FROM TBDATA A, CODES_DSC C  
-         WHERE C.LNG_COD = ? 
-         AND A.CDS_COD = C.CDS_COD 
-        i_02.a(new p(" AND ((A.CAT_COD) = ? )  ", "_CAT", string8));
-        i_02.a(new p(" AND ((A.GRP_COD) = ? )", "_GRP", new Long(string9)));
-        i_02.a(new p(" AND ((A.SGRP_COD) = ? )", "_SGRP", new Long(string10)));
-        i_02.a(new p(" AND ((A.SGS_COD) = ? )", "_SGS_COD", new Long(string11)));
-        i_02.a(new p(" AND ((A.DRW_NUM) = ? )", "_DRW_NUM", new Long(string12)));
-        if (!string6.equals("1") && string13.length() > 0) {
-            i_02.a(new p(" AND ((A.TBD_RIF) = ? )", "_TBD_RIF", string13));
-        }
-        String string14 = " ORDER BY TBD_RIF, TBD_SEQ ";
+    SELECT A.TBD_RIF, C.CDS_DSC, A.COL_COD, A.TBD_SEQ, A.PRT_COD, 
+        A.NTS_COD, A.TBD_AGG_DSC, A.TBD_QTY, A.TBD_NEW_FLAG ,A.PRT_FAM_COD,A.PRT_MASK_MAK 
+        FROM TBDATA A, CODES_DSC C  
+        WHERE C.LNG_COD = ? 
+        AND A.CDS_COD = C.CDS_COD 
+        AND ((A.CAT_COD) = ? )
+        AND ((A.GRP_COD) = ? )
+        AND ((A.SGRP_COD) = ? )
+        AND ((A.SGS_COD) = ? )
+        AND ((A.DRW_NUM) = ? )
+        AND ((A.TBD_RIF) = ? )
+        ORDER BY TBD_RIF, TBD_SEQ 
 
 
 ## GET_FAMILIES_LIST
 
-             SELECT DISTINCT FAM_COD, FAM_DSC FROM FAM_DSC, PARTS 
-             WHERE PARTS.PRT_FAM_COD = FAM_DSC.FAM_COD
-             AND LNG_COD = ? 
-            if (!bl) {
-                if (b_02.e()) {
-                     AND FAM_DSC LIKE ? 
-                } else {
-                     AND UPPER(FAM_DSC) LIKE UPPER(?) 
-                }
-            }
-             ORDER BY FAM_COD 
+    SELECT DISTINCT FAM_COD, FAM_DSC FROM FAM_DSC, PARTS 
+        WHERE PARTS.PRT_FAM_COD = FAM_DSC.FAM_COD
+        AND LNG_COD = ? 
+        AND UPPER(FAM_DSC) LIKE UPPER(?) 
+        ORDER BY FAM_COD 
 
 ## Possible Cliche?
 
-             SELECT A.CPD_RIF, A.CPD_RIF_SEQ, A.PRT_COD, 
-             A.CPD_QTY, A.CPD_AGG_DSC, A.CPD_NEW_FLAG, C.CDS_DSC ,B.PRT_FAM_COD,B.PRT_MASK_MAK  
-             FROM CPXDATA A, PARTS B, CODES_DSC C 
-             WHERE A.CPLX_PRT_COD = ? 
-             AND A.CPD_NUM = ? 
-            if (!string21.equals("1") && n2 > 0 && string18.length() > 0) {
-                 AND A.CPD_RIF = ? 
-            }
-             AND A.PRT_COD = B.PRT_COD 
-             AND B.CDS_COD = C.CDS_COD 
-             AND C.LNG_COD = ? 
-             ORDER BY CPD_RIF, CPD_RIF_SEQ 
+    SELECT A.CPD_RIF, A.CPD_RIF_SEQ, A.PRT_COD, 
+        A.CPD_QTY, A.CPD_AGG_DSC, A.CPD_NEW_FLAG, C.CDS_DSC ,B.PRT_FAM_COD,B.PRT_MASK_MAK  
+        FROM CPXDATA A, PARTS B, CODES_DSC C 
+        WHERE A.CPLX_PRT_COD = ? 
+        AND A.CPD_NUM = ? 
+        AND A.CPD_RIF = ? 
+        AND A.PRT_COD = B.PRT_COD 
+        AND B.CDS_COD = C.CDS_COD 
+        AND C.LNG_COD = ? 
+        ORDER BY CPD_RIF, CPD_RIF_SEQ 
 
 ## Possible Kits?
 
-             SELECT DISTINCT 0 AS CPD_RIF, 'A' AS CPD_SEQ, A.PRT_COD, 
-             '1' AS CPD_QTY, '' AS CPD_AGG_DSC, '' AS CPD_NEW_FLAG, C.CDS_DSC ,B.PRT_FAM_COD,B.PRT_MASK_MAK 
-             FROM KIT A, PARTS B, CODES_DSC C 
-             WHERE A.CPLX_PRT_COD = " + string16 + " 
-             AND A.CAT_COD = '" + string9 + "' 
-             AND A.GRP_COD = " + string10 + " 
-             AND A.SGRP_COD = " + string11 + " 
-             AND A.SGS_COD = " + string12 + " 
-             AND A.DRW_NUM = " + string13 + " 
-             AND A.TBD_RIF = " + string14 + " 
-             AND A.TBD_SEQ = '" + string15 + "' 
-             AND A.PRT_COD = B.PRT_COD 
-             AND B.CDS_COD = C.CDS_COD 
-             AND C.LNG_COD = '" + string8 + "' 
+    SELECT DISTINCT 0 AS CPD_RIF, 'A' AS CPD_SEQ, A.PRT_COD, 
+        '1' AS CPD_QTY, '' AS CPD_AGG_DSC, '' AS CPD_NEW_FLAG, C.CDS_DSC ,B.PRT_FAM_COD,B.PRT_MASK_MAK 
+        FROM KIT A, PARTS B, CODES_DSC C 
+        WHERE A.CPLX_PRT_COD = ?
+        AND A.CAT_COD = ?
+        AND A.GRP_COD = ?
+        AND A.SGRP_COD = ?
+        AND A.SGS_COD = ?
+        AND A.DRW_NUM = ?
+        AND A.TBD_RIF = ?
+        AND A.TBD_SEQ = ?
+        AND A.PRT_COD = B.PRT_COD 
+        AND B.CDS_COD = C.CDS_COD 
+        AND C.LNG_COD = ?
 
 ## GET_REF_FILTER1
 
-             SELECT TBD_RIF, TBD_SEQ, TBD_VAL_FORMULA, COL_COD 
-             FROM TBDATA 
-             WHERE CAT_COD = ? 
-             AND GRP_COD = ? 
-             AND SGRP_COD = ? 
-             AND SGS_COD = ? 
-             AND DRW_NUM = ? 
+    SELECT TBD_RIF, TBD_SEQ, TBD_VAL_FORMULA, COL_COD 
+        FROM TBDATA 
+        WHERE CAT_COD = ? 
+        AND GRP_COD = ? 
+        AND SGRP_COD = ? 
+        AND SGS_COD = ? 
+        AND DRW_NUM = ? 
 
 ## GET_REF_FILTER2
 
-             SELECT A.TBD_RIF, A.TBD_SEQ, A.TBDM_CD, A.MDF_COD 
-             FROM TBDATA_MOD A 
-             WHERE A.CAT_COD = ? 
-             AND A.GRP_COD = ? 
-             AND A.SGRP_COD = ? 
-             AND A.SGS_COD = ? 
-             AND A.DRW_NUM = ? 
+    SELECT A.TBD_RIF, A.TBD_SEQ, A.TBDM_CD, A.MDF_COD 
+        FROM TBDATA_MOD A 
+        WHERE A.CAT_COD = ? 
+        AND A.GRP_COD = ? 
+        AND A.SGRP_COD = ? 
+        AND A.SGS_COD = ? 
+        AND A.DRW_NUM = ? 
 
 ## GET_CPLX_REF_FILTER1
 
-             SELECT CPD_RIF, CPD_RIF_SEQ 
-             FROM CPXDATA  
-             WHERE CPLX_PRT_COD = ? 
-             AND CPD_NUM = ? 
+    SELECT CPD_RIF, CPD_RIF_SEQ 
+        FROM CPXDATA  
+        WHERE CPLX_PRT_COD = ? 
+        AND CPD_NUM = ? 
 
 ## GET_CPLX_REF_FILTER2
 
-             SELECT C.CPD_RIF, C.CPD_RIF_SEQ, M.CPXDM_CD, M.MDF_COD 
-             FROM CPXDATA_MOD M, CPXDATA C 
-             WHERE C.CPLX_PRT_COD = ? 
-             AND C.CPD_NUM = ? 
-             AND M.PRT_COD = C.PRT_COD  
-             AND M.CPLX_PRT_COD = C.CPLX_PRT_COD 
+    SELECT C.CPD_RIF, C.CPD_RIF_SEQ, M.CPXDM_CD, M.MDF_COD 
+        FROM CPXDATA_MOD M, CPXDATA C 
+        WHERE C.CPLX_PRT_COD = ? 
+        AND C.CPD_NUM = ? 
+        AND M.PRT_COD = C.PRT_COD  
+        AND M.CPLX_PRT_COD = C.CPLX_PRT_COD 
 
 ## GET_SUB_GROUP_FILTER1
 
-             SELECT SGRP_COD, SGS_COD, SGS_VAL_FORMULA FROM SGSEQS 
-             WHERE CAT_COD = ? 
-             AND GRP_COD = ? 
+    SELECT SGRP_COD, SGS_COD, SGS_VAL_FORMULA FROM SGSEQS 
+        WHERE CAT_COD = ? 
+        AND GRP_COD = ? 
 
 ## GET_SUB_GROUP_FILTER2
 
-             SELECT A.SGRP_COD, A.SGS_COD, A.SGSMOD_CD, A.MDF_COD 
-             FROM SGS_MOD A 
-             WHERE A.CAT_COD = ? 
-             AND A.GRP_COD = ? 
+    SELECT A.SGRP_COD, A.SGS_COD, A.SGSMOD_CD, A.MDF_COD 
+        FROM SGS_MOD A 
+        WHERE A.CAT_COD = ? 
+        AND A.GRP_COD = ? 
 
 ## GET_ACTIVATIONS
 
-select act_cod, act_mask from activations 
+    select act_cod, act_mask from activations 
 
 ## GET_COMMERCIAL_MODEL_LIST
 
-             select distinct mod_cod, mod_dsc from 
-             (select  a.mod_cod, a.mod_dsc from models a, catalogues b, comm_models c  
-             where b.cat_cod = c.cat_cod and c.mod_cod = a.mod_cod and b.mk2_cod = ? 
-             order by a.mod_sort_key) 
+    select distinct mod_cod, mod_dsc 
+        from 
+            (select  a.mod_cod, a.mod_dsc 
+                from models a, catalogues b, comm_models c  
+                where b.cat_cod = c.cat_cod and c.mod_cod = a.mod_cod and b.mk2_cod = ? 
+                order by a.mod_sort_key) 
 
 ## GET_PART_DATA_1
 
-SELECT PRT_COD,A.CDS_COD,B.CDS_DSC,PRT_FAM_COD, PRT_MASK_MAK from PARTS A, CODES_DSC B where prt_cod=? AND A.CDS_COD = B.CDS_COD AND B.LNG_COD = ? 
+    SELECT PRT_COD,A.CDS_COD,B.CDS_DSC,PRT_FAM_COD, PRT_MASK_MAK 
+            from PARTS A, CODES_DSC B 
+            where prt_cod=? AND A.CDS_COD = B.CDS_COD AND B.LNG_COD = ? 
 
 ## GET_CLICHE_CODE_FROM_PART_CODE
 
-            SELECT DISTINCT CLH_COD 
-             FROM CPXDATA WHERE CPLX_PRT_COD=? AND CPD_NUM = ? 
+    SELECT DISTINCT CLH_COD 
+        FROM CPXDATA 
+        WHERE CPLX_PRT_COD=? AND CPD_NUM = ? 
 
 ## GET_COLOR_DESCR_FROM_CODE
 
-    SELECT COL_DSC FROM COLOURS_DSC WHERE CAT_COD=? AND COL_COD=? AND LNG_COD=?
+    SELECT COL_DSC 
+        FROM COLOURS_DSC 
+        WHERE CAT_COD=? AND COL_COD=? AND LNG_COD=?
 
 ## GET_RECOND_FROM_PART_CODE
 
-SELECT RCP_RECOND, RCP_WRECK FROM REC_PARTS WHERE RCP_COD = ?  
+    SELECT RCP_RECOND, RCP_WRECK 
+        FROM REC_PARTS 
+        WHERE RCP_COD = ?  
 
 ## GET_MARKETS
 
- SELECT MKT_COD, MKT_LONG_DSC FROM MARKETS ORDER BY MKT_LONG_DSC
+    SELECT MKT_COD, MKT_LONG_DSC 
+        FROM MARKETS 
+        ORDER BY MKT_LONG_DSC
 
  ## GET_LIST_LANGUAGES
 
- SELECT LNG_COD, LNG_DSC FROM LANG ORDER BY LNG_COD
+    SELECT LNG_COD, LNG_DSC 
+        FROM LANG 
+        ORDER BY LNG_COD
 
  ## GET_MODEL_FROM_SINCOM_MODEL_SUBMAKE
 
- SELECT DISTINCT catalogues.cmg_cod FROM catalogues, comm_models WHERE catalogues.mk_cod=? And catalogues.cat_cod=comm_models.cat_cod And comm_models.mod_cod=?
+    SELECT DISTINCT catalogues.cmg_cod 
+        FROM catalogues, comm_models 
+        WHERE catalogues.mk_cod=? And catalogues.cat_cod=comm_models.cat_cod And comm_models.mod_cod=?
 
  ## CHECK_MOD3
 
-              SELECT TR_FROM_T, TR_TO_T, TR_FROM_V, TR_TO_V 
-             FROM TRANCHE 
-             WHERE MOD_COD = ? 
+    SELECT TR_FROM_T, TR_TO_T, TR_FROM_V, TR_TO_V 
+        FROM TRANCHE 
+        WHERE MOD_COD = ? 
 
 ## Cliche?
 
-        SELECT DISTINCT MIN(CPD_NUM) 
-         FROM CPXDATA WHERE CPLX_PRT_COD=? 
+    SELECT DISTINCT MIN(CPD_NUM) 
+        FROM CPXDATA 
+        WHERE CPLX_PRT_COD=? 
 
 ## GET_DESCR_PART_FROM_CDS
 
-SELECT CDS_DSC FROM CODES_DSC WHERE CDS_COD = ? AND LNG_COD = ? 
+    SELECT CDS_DSC 
+        FROM CODES_DSC 
+        WHERE CDS_COD = ? AND LNG_COD = ? 
 
 ## GET_PART_CDSCOD
 
-SELECT CDS_COD FROM PARTS WHERE PRT_COD = ? 
+    SELECT CDS_COD 
+        FROM PARTS 
+        WHERE PRT_COD = ? 
 
 ## GET_ALL_CATS_LIST
 
-            object = "SELECT DISTINCT A.CAT_COD, A.CAT_DSC, A.MK2_COD, A.CAT_SORT_KEY  FROM CATALOGUES A, COMM_MODELS B  where A.CAT_COD=B.CAT_COD ";
-            if (string != null && !string.equals("")) {
-                object = (String)object + " and A.MK2_COD=? ";
-            }
-            object = (String)object + " ORDER BY A.MK2_COD, A.CAT_SORT_KEY";
+    SELECT DISTINCT A.CAT_COD, A.CAT_DSC, A.MK2_COD, A.CAT_SORT_KEY  
+        FROM CATALOGUES A, COMM_MODELS B  
+        where A.CAT_COD=B.CAT_COD 
+        and A.MK2_COD=? 
+        ORDER BY A.MK2_COD, A.CAT_SORT_KEY
 
 ## COUNT_RPLMNTS
 
-             SELECT count(*) 
-             FROM RPLNT A 
-             WHERE A.RPL_COD = ? 
+    SELECT count(*) 
+        FROM RPLNT A 
+        WHERE A.RPL_COD = ? 
 
 ## GET_FAM_DSC_FROM_FAMCOD
 
-    SELECT FAM_DSC FROM FAM_DSC WHERE FAM_COD = ? AND LNG_COD = ? 
+    SELECT FAM_DSC 
+        FROM FAM_DSC 
+        WHERE FAM_COD = ? AND LNG_COD = ? 
 
 
 
