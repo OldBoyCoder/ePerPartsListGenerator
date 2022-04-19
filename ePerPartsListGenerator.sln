@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Queries.MD = Queries.MD
 		README.md = README.md
+		Release20Structure.MD = Release20Structure.MD
+		Release84Structure.MD = Release84Structure.MD
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ePerLoadImagesToDatabase", "ePerLoadImagesToDatabase\ePerLoadImagesToDatabase.csproj", "{41D0A68D-BDFC-4B22-8CA2-45C429FE20F1}"
