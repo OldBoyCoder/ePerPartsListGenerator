@@ -123,7 +123,6 @@ namespace ePerPartsListGenerator.Render
                 _titleFont);
             y += DrawStringCentre($"Using version {Assembly.GetExecutingAssembly().GetName().Version}",
                 _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            //y = DrawDrawing(_catalogue.ImagePath, y + 20);
             y = DrawDrawingFromStream(_catalogue.ImageBytes, y + 20);
             _contentsY = y;
         }
@@ -341,6 +340,7 @@ namespace ePerPartsListGenerator.Render
             Group group, Drawing drawing, RenderFont font,
             double tableLeft)
         {
+            if (lookUps == null) return y;
             var h = font.Height(_gfx);
             foreach (var item in data.OrderBy(x => x))
             {
@@ -374,7 +374,8 @@ namespace ePerPartsListGenerator.Render
             AddPageFooter();
             DrawGroupTags(group);
             var y = DrawDrawingPageTitle(group, table, drawing);
-            y = DrawDrawingFromStream(drawing.ImageStream, y);
+            if (drawing.ImageStream != null)
+                y = DrawDrawingFromStream(drawing.ImageStream, y);
             return y;
         }
 
@@ -545,6 +546,7 @@ namespace ePerPartsListGenerator.Render
 
         private double DrawDrawingFromStream(MemoryStream imagePath, double startY)
         {
+            if (imagePath == null) return startY;
             var image = XImage.FromStream(imagePath);
 
             if (image == null) return startY;
@@ -659,7 +661,8 @@ namespace ePerPartsListGenerator.Render
             var y = GetHeight(page, 10);
             y += DrawStringCentre($"{group.Code} - {group.Description}", _punchMargin, y,
                 page.Width - _punchMargin - _groupsWidth - _littleGap, _titleFont);
-            y = DrawDrawingFromStream(group.ImageStream, y + 20);
+            if (group.ImageStream != null)
+                y = DrawDrawingFromStream(group.ImageStream, y + 20);
 
             y = DrawTableListHeaders(y, _contentWidths, _punchMargin);
 

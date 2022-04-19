@@ -22,15 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace ePerPartsListGenerator.Model
 {
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     internal class Group
     {
         internal string Code;
         internal MemoryStream ImageStream;
         internal string Description;
         internal List<Table> Tables;
+
+        private string GetDebuggerDisplay()
+        {
+            return $"{Code} {Description}";
+        }
     }
 }

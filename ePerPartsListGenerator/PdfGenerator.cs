@@ -25,24 +25,28 @@ using System.Collections.Generic;
 using System.IO;
 using ePerPartsListGenerator.Model;
 using ePerPartsListGenerator.Render;
+using ePerPartsListGenerator.Repository;
 
 namespace ePerPartsListGenerator
 {
     public class PdfGenerator
     {
-        public Stream CreatePartsListPdf(string catalogueCode, string languageCode)
+        private IRepository Rep;
+        public PdfGenerator(IRepository rep)
         {
-            var rep = new Repository.Repository(languageCode);
-            var cat = rep.GetCatalogue(catalogueCode);
-            var renderer = new CatalogueRendererLandscape(cat) {DocumentPerSection = true};
+            Rep = rep;
+        }
+        public Stream CreatePartsListPdf(string catalogueCode)
+        {
+            var cat = Rep.GetCatalogue(catalogueCode);
+            var renderer = new CatalogueRendererLandscape(cat) {DocumentPerSection = false};
             renderer.StartDocument();
             return renderer.AddGroups(cat);
         }
 
-        public List<Catalogue> GetAllCatalogues(string languageCode)
+        public List<Catalogue> GetAllCatalogues()
         {
-            var rep = new Repository.Repository(languageCode);
-            var catalogues = rep.GetAllCatalogues();
+            var catalogues = Rep.GetAllCatalogues();
             return catalogues;
         }
     }

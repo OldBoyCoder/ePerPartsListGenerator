@@ -38,5 +38,6 @@ namespace ePerPartsListGenerator.Model
         internal int Rif;
         internal string Notes;
         internal string ClicheCode;
+        internal string Sequence;
     }
 }
