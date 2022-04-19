@@ -205,8 +205,7 @@ namespace ePerPartsListGenerator.Repository
                     {
                         d.Modifications = "";
                     }
-                    d.ValidFor = "";
-                    //d.ValidFor = dr.GetString(5);
+                    d.ValidFor = GetVariationsAndOptionsForSubGroup(catalogue, group, table);
                     d.CompatibilityList.AddRange(d.ValidFor.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' },
                         System.StringSplitOptions.RemoveEmptyEntries));
 
@@ -241,7 +240,45 @@ namespace ePerPartsListGenerator.Repository
             return String.Join(",", mods);
 
         }
-            private MemoryStream GetImageForDrawing(Catalogue cat, Group group, Table table, Drawing drawing)
+        private string GetVariationsAndOptionsForSubGroup(Catalogue cat, Group group, Table table)
+        {
+            var sql =
+                " SELECT VMK_TYPE, VMK_COD " +
+                "FROM SGS_VAL " +
+                $"WHERE CAT_COD = @P1 AND GRP_COD = @P2 AND SGRP_COD = @P3 AND SGS_COD = @P4;";
+            var cmd = new OleDbCommand(sql, _conn);
+            cmd.Parameters.AddWithValue("@P1", cat.CatCode);
+            cmd.Parameters.AddWithValue("@P2", group.Code);
+            cmd.Parameters.AddWithValue("@P3", table.TableCode);
+            cmd.Parameters.AddWithValue("@P4", table.SubGroupCode);
+            var vars = new List<string>();
+            using (var dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    vars.Add(dr.GetString(0) + dr.GetString(1));
+                }
+            }
+            sql =
+                " SELECT OPTK_TYPE, OPTK_COD " +
+                "FROM SGS_OPT " +
+                $"WHERE CAT_COD = @P1 AND GRP_COD = @P2 AND SGRP_COD = @P3 AND SGS_COD = @P4;";
+            cmd = new OleDbCommand(sql, _conn);
+            cmd.Parameters.AddWithValue("@P1", cat.CatCode);
+            cmd.Parameters.AddWithValue("@P2", group.Code);
+            cmd.Parameters.AddWithValue("@P3", table.TableCode);
+            cmd.Parameters.AddWithValue("@P4", table.SubGroupCode);
+            using (var dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    vars.Add(dr.GetString(0) + dr.GetString(1));
+                }
+            }
+            return String.Join(",", vars);
+
+        }
+        private MemoryStream GetImageForDrawing(Catalogue cat, Group group, Table table, Drawing drawing)
         {
             // Generate file name
             var fileName = Path.Combine(@"C:\ePer installs\Release 20\SP.NA.00900.FCTLR", $"{cat.MakeCode}{cat.CatCode}.na");
