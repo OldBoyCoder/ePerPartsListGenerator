@@ -33,6 +33,7 @@ namespace ePerPartsListGenerator.Model
         internal string FullCode;
         internal string Description;
         internal List<Drawing> Drawings;
+        internal byte SubGroupCode;
 
         private string GetDebuggerDisplay()
         {

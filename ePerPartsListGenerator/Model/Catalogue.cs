@@ -42,6 +42,7 @@ namespace ePerPartsListGenerator.Model
 
         public string Description;
         public string CatCode;
+        public string MakeCode;
         internal Dictionary<string, string> AllModifications;
         internal Dictionary<string, string> AllVariants;
         internal MemoryStream ImageBytes;

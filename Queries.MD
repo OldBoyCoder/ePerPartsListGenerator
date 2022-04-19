@@ -25,7 +25,14 @@ These are the queries embedded in the Release 20 Java code
     SELECT DISTINCT A.CDS_COD, A.CDS_DSC 
         FROM CODES_DSC A, APPLICABILITY B  
         WHERE B.CDS_COD = A.CDS_COD AND A.CDS_DSC LIKE ? AND A.LNG_COD = ? 
-        ORDER BY A.CDS_COD" : " SELECT DISTINCT A.CDS_COD, A.CDS_DSC FROM CODES_DSC A, APPLICABILITY B  WHERE B.CDS_COD = A.CDS_COD AND UPPER(A.CDS_DSC) LIKE UPPER(?) AND A.LNG_COD = ? ORDER BY A.CDS_COD
+        ORDER BY A.CDS_COD
+
+or 
+
+    SELECT DISTINCT A.CDS_COD, A.CDS_DSC 
+        FROM CODES_DSC A, APPLICABILITY B  
+        WHERE B.CDS_COD = A.CDS_COD AND UPPER(A.CDS_DSC) LIKE UPPER(?) AND A.LNG_COD = ? 
+        ORDER BY A.CDS_COD
 
 ## GET_DESCR_SUBGROUP
 
@@ -301,7 +308,8 @@ This query is built conditionally depending on the search parameters
 
 ## GET_ACTIVATIONS
 
-    select act_cod, act_mask from activations 
+    select act_cod, act_mask 
+        from activations 
 
 ## GET_COMMERCIAL_MODEL_LIST
 
