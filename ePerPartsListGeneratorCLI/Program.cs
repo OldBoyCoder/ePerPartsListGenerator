@@ -33,7 +33,7 @@ namespace ePerPartsListGeneratorCLI
         private static void Main()
         {
             var html = "<html>";
-            var repository = new AccessRelease20Repository("3");
+            var repository = new AccessRelease20Repository("3", @"C:\ePer installs\Release 20");
             var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository);
             var cats = pdfGen.GetAllCatalogues();
             var lastMake = "";

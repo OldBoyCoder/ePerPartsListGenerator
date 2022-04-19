@@ -11,10 +11,12 @@ namespace ePerPartsListGenerator.Repository
     {
         private OleDbConnection _conn;
         private readonly string _languageCode;
+        private readonly string _basePath;
 
-        public AccessRelease20Repository(string languageCode)
+        public AccessRelease20Repository(string languageCode, string basePath)
         {
             _languageCode = languageCode;
+            _basePath = basePath;   
         }
 
         public List<Catalogue> GetAllCatalogues()
@@ -37,7 +39,7 @@ namespace ePerPartsListGenerator.Repository
                 };
                 catalogues.Add(cat);
             }
-
+            Close();
             return catalogues;
         }
 
@@ -54,8 +56,7 @@ namespace ePerPartsListGenerator.Repository
                 foreach (var table in group.Tables)
                     GetTableDrawings(cat, group, table);
             }
-
-            //Close();
+            Close();
             return cat;
         }
         private void GetAllGroupEntries(Catalogue cat)
@@ -69,15 +70,42 @@ namespace ePerPartsListGenerator.Repository
                 {
                     var g = new Group();
                     g.Code = dr.GetInt16(0).ToString();
-                    //ImageStream = GetColumnAsStream(dr, 1),
+                    var mapName = GetMapNameForGroup(cat, g);
+
+                    g.ImageStream = GetImageForGroup(mapName);
                     g.Description = dr.GetString(1);
                     d.Add(g);
                 }
-
                 dr.Close();
             }
-
             cat.Groups = d;
+        }
+        private string GetMapNameForGroup(Catalogue catalogue, Group group)
+        {
+            // First try a vehicle specific table
+            var sql = $"SELECT MAP_SGRP FROM MAP_VET WHERE CAT_COD = '{catalogue.CatCode}' AND GRP_COD = {group.Code}";
+            var cmd = new OleDbCommand(sql, _conn);
+            using (var dr = cmd.ExecuteReader())
+            {
+                if (dr.Read())
+                {
+                    return dr.GetString(0);
+                }
+                dr.Close();
+            }
+            // if not try the general table
+            sql = $"SELECT MAP_NAME FROM MAP_SGRP WHERE GRP_COD = {group.Code} ORDER BY SGRP_COD";
+            cmd = new OleDbCommand(sql, _conn);
+            using (var dr = cmd.ExecuteReader())
+            {
+                if (dr.Read())
+                {
+                    return dr.GetString(0);
+                }
+                dr.Close();
+            }
+            return "";
+
         }
 
         private void GetGroupTables(Catalogue catalogue, Group group)
@@ -137,19 +165,23 @@ namespace ePerPartsListGenerator.Repository
         private void Open()
         {
             var password = "\u0001\u0007\u0014\u0007\u0001\u00f3\u001b\n\n\u00d2\u001e\u00da\u00b1";
-            var ePerPath = @"C:\ePer installs\Release 20";
             OleDbConnectionStringBuilder builder = new OleDbConnectionStringBuilder();
-            builder.ConnectionString = $"Data Source={ePerPath}\\SP.DB.00900.FCTLR";
+            builder.ConnectionString = $"Data Source={_basePath}\\SP.DB.00900.FCTLR";
             builder.Add("Provider", "Microsoft.Jet.Oledb.4.0");
             builder.Add("Jet OLEDB:Database Password", password);
             _conn = new OleDbConnection(builder.ConnectionString);
             _conn.Open();
 
         }
+        private void Close()
+
+        {
+            _conn.Close();
+        }
 
         private Catalogue ReadCatalogue(string catCode)
         {
-            var sql = $"select MK_COD, CAT_DSC from CATALOGUES C where cat_cod = '{catCode}'";
+            var sql = $"select MK_COD, CAT_DSC, CMG_COD from CATALOGUES C where cat_cod = '{catCode}'";
             var cmd = new OleDbCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             var cat = new Catalogue();
@@ -157,7 +189,7 @@ namespace ePerPartsListGenerator.Repository
             {
                 cat.MakeCode = dr.GetString(0);
                 cat.Description = dr.GetString(1);
-                //cat.ImageBytes = GetColumnAsStream(dr, 1);
+                cat.ImageBytes = GetImageForCatalogue(dr.GetString(2));
             }
 
             dr.Close();
@@ -237,7 +269,7 @@ namespace ePerPartsListGenerator.Repository
                     mods.Add(dr.GetString(0) + dr.GetInt16(1).ToString("0000"));
                 }
             }
-            return String.Join(",", mods);
+            return string.Join(",", mods);
 
         }
         private string GetVariationsAndOptionsForSubGroup(Catalogue cat, Group group, Table table)
@@ -275,15 +307,37 @@ namespace ePerPartsListGenerator.Repository
                     vars.Add(dr.GetString(0) + dr.GetString(1));
                 }
             }
-            return String.Join(",", vars);
+            return string.Join(",", vars);
 
         }
         private MemoryStream GetImageForDrawing(Catalogue cat, Group group, Table table, Drawing drawing)
         {
             // Generate file name
-            var fileName = Path.Combine(@"C:\ePer installs\Release 20\SP.NA.00900.FCTLR", $"{cat.MakeCode}{cat.CatCode}.na");
+            var fileName = Path.Combine(_basePath, @"SP.NA.00900.FCTLR", $"{cat.MakeCode}{cat.CatCode}.na");
             var imageName = $"{group.Code}{table.TableCode.ToString("00")}{table.SubGroupCode.ToString("00")}{drawing.DrawingNo.ToString("000")}";
             return GetImageFromNaFile(fileName, imageName);
+        }
+
+        private MemoryStream GetImageForGroup(string mapName)
+        {
+            // Generate file name
+            var fileName = Path.Combine(_basePath, "SP.MP.00900.FCTLR", $"{mapName}.jpg");
+            var fileBytes = File.ReadAllBytes(fileName);
+            return new MemoryStream(fileBytes);
+        }
+        private MemoryStream GetImageForCatalogue(string cmgCode)
+        {
+            // Generate file name
+            var lines = File.ReadAllLines(Path.Combine(_basePath, @"SP.IM.00900.FXXXX\img.conf"));
+            var matches = lines.Where(x => x.Contains($",{cmgCode},"));
+            var line = matches.FirstOrDefault(x => x.Contains("s2"));
+            if (line == null)
+            {
+                line = matches.FirstOrDefault(x => x.Contains("s1"));
+                if (line == null) return null;
+            }
+            var fileName = line.Split(new[] { ',' })[3];
+            return new MemoryStream(File.ReadAllBytes(Path.Combine(_basePath, @"SP.IM.00900.FXXXX", fileName)));
         }
 
         private static MemoryStream GetImageFromNaFile(string fileName, string imageName)
@@ -313,8 +367,8 @@ namespace ePerPartsListGenerator.Repository
         private MemoryStream GetImageForCliche(string clicheCode)
         {
             // Generate file name
-            var fileName = Path.Combine(@"C:\ePer installs\Release 20\SP.NA.00900.FCTLR", $"cliche.na");
-            var imageName = clicheCode.PadLeft(10,'0');
+            var fileName = Path.Combine(_basePath, @"SP.NA.00900.FCTLR", $"cliche.na");
+            var imageName = clicheCode.PadLeft(10, '0');
             return GetImageFromNaFile(fileName, imageName);
         }
         private void AddParts(string catCode, Group group, Table table, Drawing d)
@@ -350,14 +404,6 @@ namespace ePerPartsListGenerator.Repository
 
                         p.Notes = dr.IsDBNull(6) ? "" : dr.GetString(6);
                         p.ClicheCode = "";
-                        if (p.ClicheCode != "")
-                        {
-                            if (!d.Cliches.ContainsKey(p.PartNo))
-                                d.Cliches.Add(p.PartNo, new Cliche(p.ClicheCode));
-                            d.Cliches[p.PartNo].PartNo = p.PartNo;
-                            d.Cliches[p.PartNo].Description = p.Description;
-                            //d.Cliches[p.PartNo].ImageStream = GetColumnAsStream(dr, 8);
-                        }
                         p.Sequence = dr.GetString(9);
 
                         d.Parts.Add(p);
@@ -365,7 +411,6 @@ namespace ePerPartsListGenerator.Repository
 
                     dr.Close();
                 }
-                //PopulateCliches(d, catCode);
             }
             // Now get modifications for all parts just retrieved
             foreach (var part in d.Parts)
@@ -438,7 +483,7 @@ namespace ePerPartsListGenerator.Repository
 
                 item.Value.ImageStream = GetImageForCliche(item.Value.ClicheCode);
                 // Now get that parts for the cliches;
-                var sql = "SELECT CPD_RIF, CPXDATA.PRT_COD, TRIM(CDS_DSC + ' ' +IIF(ISNULL(CPD_AGG_DSC), '', CPD_AGG_DSC)), NULL, CPD_QTY, NULL, '', CLH_COD "; 
+                var sql = "SELECT CPD_RIF, CPXDATA.PRT_COD, TRIM(CDS_DSC + ' ' +IIF(ISNULL(CPD_AGG_DSC), '', CPD_AGG_DSC)), NULL, CPD_QTY, NULL, '', CLH_COD ";
                 sql += " FROM((CPXDATA";
                 sql += " INNER JOIN PARTS ON(PARTS.PRT_COD = CPXDATA.PRT_COD))";
                 sql += $" INNER JOIN CODES_DSC ON(PARTS.CDS_COD = CODES_DSC.CDS_COD AND LNG_COD = '{_languageCode}'))";
@@ -479,7 +524,7 @@ namespace ePerPartsListGenerator.Repository
 
                     p.Notes = dr.GetString(6);
                     p.ClicheCode = dr.GetInt32(7).ToString();
-                    
+
                     item.Value.Parts.Add(p);
                 }
 
@@ -512,7 +557,5 @@ namespace ePerPartsListGenerator.Repository
                 dr.Close();
             }
         }
-
-
     }
 }

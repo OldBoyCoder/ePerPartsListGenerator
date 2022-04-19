@@ -123,7 +123,6 @@ namespace ePerPartsListGenerator.Render
                 _titleFont);
             y += DrawStringCentre($"Using version {Assembly.GetExecutingAssembly().GetName().Version}",
                 _punchMargin, y, _page.Width - _punchMargin, _titleFont);
-            //y = DrawDrawing(_catalogue.ImagePath, y + 20);
             y = DrawDrawingFromStream(_catalogue.ImageBytes, y + 20);
             _contentsY = y;
         }
