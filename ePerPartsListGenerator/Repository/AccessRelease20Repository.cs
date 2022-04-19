@@ -190,23 +190,21 @@ namespace ePerPartsListGenerator.Repository
                     //Variant = dr.GetInt16(1),
                     d.TableCode = group.Code + table.TableCode.ToString("00") + "/" + dr.GetByte(2).ToString("00");
                     d.SgsCode = dr.GetByte(2);
-                    d.Modifications = "";
-                    //if (!dr.IsDBNull(4))
-                    //{
-                    //    var mods = dr.GetString(4);
-                    //    d.Modifications = mods;
-                    //    var modItems = mods.Split(',');
-                    //    foreach (var item in modItems)
-                    //    {
-                    //        var mod = item.Substring(1);
-                    //        if (!d.ModificationList.Contains(mod))
-                    //            d.ModificationList.Add(mod);
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    d.Modifications = "";
-                    //}
+                    d.Modifications = GetModificationsForSubGroup(catalogue, group, table);
+                    if (d.Modifications != "")
+                    {
+                        var modItems = d.Modifications.Split(',');
+                        foreach (var item in modItems)
+                        {
+                            var mod = item.Substring(1);
+                            if (!d.ModificationList.Contains(mod))
+                                d.ModificationList.Add(mod);
+                        }
+                    }
+                    else
+                    {
+                        d.Modifications = "";
+                    }
                     d.ValidFor = "";
                     //d.ValidFor = dr.GetString(5);
                     d.CompatibilityList.AddRange(d.ValidFor.Split(new[] { ',', '+', '(', ')', ' ', '!', '\n' },
@@ -220,7 +218,30 @@ namespace ePerPartsListGenerator.Repository
 
             foreach (var d in table.Drawings) AddParts(catalogue.CatCode, group, table, d);
         }
-        private MemoryStream GetImageForDrawing(Catalogue cat, Group group, Table table, Drawing drawing)
+        private string GetModificationsForSubGroup(Catalogue cat, Group group, Table table)
+        {
+            var sql =
+                " SELECT SGSMOD_CD, MDF_COD " +
+                "FROM SGS_MOD " +
+                $"WHERE CAT_COD = @P1 AND GRP_COD = @P2 AND SGRP_COD = @P3 AND SGS_COD = @P4 " +
+                "ORDER BY SGSMOD_SEQ";
+            var cmd = new OleDbCommand(sql, _conn);
+            cmd.Parameters.AddWithValue("@P1", cat.CatCode);
+            cmd.Parameters.AddWithValue("@P2", group.Code);
+            cmd.Parameters.AddWithValue("@P3", table.TableCode);
+            cmd.Parameters.AddWithValue("@P4", table.SubGroupCode);
+            var mods = new List<string>();
+            using (var dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    mods.Add(dr.GetString(0) + dr.GetInt16(1).ToString("0000"));
+                }
+            }
+            return String.Join(",", mods);
+
+        }
+            private MemoryStream GetImageForDrawing(Catalogue cat, Group group, Table table, Drawing drawing)
         {
             // Generate file name
             var fileName = Path.Combine(@"C:\ePer installs\Release 20\SP.NA.00900.FCTLR", $"{cat.MakeCode}{cat.CatCode}.na");
