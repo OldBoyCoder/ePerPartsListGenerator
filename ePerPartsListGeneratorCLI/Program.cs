@@ -33,13 +33,13 @@ namespace ePerPartsListGeneratorCLI
         private static void Main()
         {
             var html = "<html>";
-            var repository = new AccessRelease20Repository("3", @"C:\ePer installs\Release 20");
+            var repository = new AccessRelease84Repository("3", @"C:\ePer installs\Release 84");
             var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository);
             var cats = pdfGen.GetAllCatalogues();
             var lastMake = "";
             var lastModel = "";
             var stream = pdfGen.CreatePartsListPdf("PK"); //2J
-            var fileName = $"c:\\temp\\parts_PK.pdf";
+            var fileName = $"c:\\temp\\parts_PK_84.pdf";
             using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 stream.CopyTo(file);
