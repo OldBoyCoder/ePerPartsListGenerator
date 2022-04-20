@@ -34,7 +34,7 @@ namespace ePerPartsListGenerator.Repository
 
         private Catalogue ReadCatalogue(string catCode)
         {
-            var sql = $"select CAT_DSC, IMG_NAME from CATALOGUES C where cat_cod = '{catCode}'";
+            var sql = $"select CAT_DSC, IMG_NAME, C.MK_COD, MK_DSC from CATALOGUES C INNER JOIN MAKES M ON (M.MK_COD = C.MK_COD) where cat_cod = '{catCode}'";
             var cmd = new OleDbCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             var cat = new Catalogue();
@@ -42,6 +42,8 @@ namespace ePerPartsListGenerator.Repository
             {
                 cat.Description = dr.GetString(0);
                 cat.ImageBytes = GetImage(dr.GetString(1));
+                cat.MakeCode = dr.GetString(2);
+                cat.Make = dr.GetString(3);
             }
 
             dr.Close();
@@ -74,7 +76,7 @@ namespace ePerPartsListGenerator.Repository
                 " SELECT DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE, DRAWINGS.REVISIONE, IMG_PATH, " +
                 "DRAWINGS.MODIF, IIF(ISNULL(Drawings.PATTERN), '', Drawings.PATTERN), TABLE_COD, SGS_COD " +
                 "FROM DRAWINGS " +
-                $"WHERE DRAWINGS.CAT_COD = '{catalogue.CatCode}' AND GRP_COD = {group.Code} AND SGRP_COD = {table.TableCode} " +
+                $"WHERE DRAWINGS.CAT_COD = '{catalogue.CatCode}' AND GRP_COD = {group.Code} AND SGRP_COD = {table.TableCode}  AND SGS_COD = {table.SubGroupCode} " +
                 "ORDER BY DRAWINGS.DRW_NUM, DRAWINGS.VARIANTE DESC, DRAWINGS.REVISIONE DESC";
             var cmd = new OleDbCommand(sql, _conn);
             using (var dr = cmd.ExecuteReader())
@@ -124,14 +126,15 @@ namespace ePerPartsListGenerator.Repository
         {
             group.Tables = new List<Table>();
             var sql =
-                $" SELECT S.SGRP_COD, SGRP_DSC FROM SUBGROUPS_BY_CAT S INNER JOIN SUBGROUPS_DSC SD ON (SD.GRP_COD = S.GRP_COD AND SD.SGRP_COD = S.SGRP_COD AND LNG_COD = '{_languageCode}') WHERE S.CAT_COD = '{catalogue.CatCode}' AND S.GRP_COD = {group.Code} order by S.SGRP_COD";
+                $" SELECT DISTINCT S.SGRP_COD, SGRP_DSC, D.SGS_COD FROM (SUBGROUPS_BY_CAT S INNER JOIN SUBGROUPS_DSC SD ON (SD.GRP_COD = S.GRP_COD AND SD.SGRP_COD = S.SGRP_COD AND LNG_COD = '{_languageCode}')) INNER JOIN DRAWINGS D ON (D.CAT_COD = S.CAT_COD AND D.GRP_COD = S.GRP_COD AND D.SGRP_COD = S.SGRP_COD)   WHERE S.CAT_COD = '{catalogue.CatCode}' AND S.GRP_COD = {group.Code} order by S.SGRP_COD, D.SGS_COD";
             var cmd = new OleDbCommand(sql, _conn);
             using (var dr = cmd.ExecuteReader())
             {
                 while (dr.Read())
                 {
                     var t = new Table { Description = dr.GetString(1), TableCode = dr.GetInt16(0) };
-                    t.FullCode = group.Code + t.TableCode.ToString("00");
+                    t.SubGroupCode = (byte)dr.GetInt16(2);
+                    t.FullCode = group.Code + t.TableCode.ToString("00")+"/"+t.SubGroupCode.ToString("00");
                     group.Tables.Add(t);
                 }
 
@@ -212,11 +215,10 @@ namespace ePerPartsListGenerator.Repository
         private void AddParts(string catCode, Group group, Table table, Drawing d)
         {
             var sql =
-                "select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +IIF(ISNULL(DAD.DSC), '', DAD.DSC)), D.MODIF, IIF(ISNULL(D.TBD_QTY), '', D.TBD_QTY), D.TBD_VAL_FORMULA, IIF(ISNULL(NTS.NTS_DSC), '', NTS.NTS_DSC), IIF(ISNULL(CL.CLH_COD), '', CL.CLH_COD), IMG_PATH " +
+                "select TBD_RIF, PRT_COD, TRIM(C.CDS_DSC + ' ' +IIF(ISNULL(DAD.DSC), '', DAD.DSC)), D.MODIF, IIF(ISNULL(D.TBD_QTY), '', D.TBD_QTY), D.TBD_VAL_FORMULA, IIF(ISNULL(NTS.NTS_DSC), '', NTS.NTS_DSC), ''" +
                 $"from (((TBDATA D INNER JOIN CODES_DSC C ON (C.CDS_COD = D.CDS_COD AND C.LNG_COD = '{_languageCode}')) " +
                 $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON (DAD.COD = D.TBD_AGG_DSC AND DAD.LNG_COD = '{_languageCode}'))  " +
                 $"LEFT OUTER JOIN [NOTES_DSC] NTS ON (NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '{_languageCode}'))  " +
-                "LEFT OUTER JOIN [CLICHE] CL ON (Cl.CPLX_PRT_COD = D.PRT_COD) " +
                 $"where CAT_COD = '{catCode}' and grp_COD = {group.Code} AND SGRP_COD = {table.TableCode} AND SGS_COD = {d.SgsCode} and VARIANTE = {d.Variant}  order by TBD_RIF, TBD_SEQ";
             d.Parts = new List<Part>();
             var cmd = new OleDbCommand(sql, _conn);
@@ -252,14 +254,15 @@ namespace ePerPartsListGenerator.Repository
                     }
 
                     p.Notes = dr.GetString(6);
-                    p.ClicheCode = dr.GetString(7);
+                    string imagePath;
+                    p.ClicheCode = GetClicheCodeForPart(p.PartNo, out imagePath);
                     if (p.ClicheCode != "")
                     {
                         if (!d.Cliches.ContainsKey(p.PartNo))
                             d.Cliches.Add(p.PartNo, new Cliche(p.ClicheCode));
                         d.Cliches[p.PartNo].PartNo = p.PartNo;
                         d.Cliches[p.PartNo].Description = p.Description;
-                        d.Cliches[p.PartNo].ImageStream = GetImage(dr.GetString(8));
+                        d.Cliches[p.PartNo].ImageStream = GetImage(imagePath);
                     }
 
                     d.Parts.Add(p);
@@ -270,7 +273,23 @@ namespace ePerPartsListGenerator.Repository
 
             PopulateCliches(d, catCode);
         }
-
+        private string GetClicheCodeForPart(string partCode, out string imagePath)
+        {
+            var sql = $"SELECT CLH_COD, IMG_PATH FROM [CLICHE] CL WHERE CL.CPLX_PRT_COD = '{partCode}'";
+            using (var cmd = new OleDbCommand(sql, _conn))
+            {
+                using (var dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        imagePath = dr.GetString(1);
+                        return dr.GetString(0);
+                    }
+                }
+            }
+            imagePath = "";
+            return "";
+        }
         private void PopulateCliches(Drawing d, string catCode)
         {
             foreach (var item in d.Cliches)

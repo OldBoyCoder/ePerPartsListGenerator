@@ -181,7 +181,7 @@ namespace ePerPartsListGenerator.Repository
 
         private Catalogue ReadCatalogue(string catCode)
         {
-            var sql = $"select MK_COD, CAT_DSC, CMG_COD from CATALOGUES C where cat_cod = '{catCode}'";
+            var sql = $"select C.MK_COD, CAT_DSC, CMG_COD, MK_DSC from CATALOGUES C INNER JOIN MAKES M ON (M.MK_COD = C.MK_COD) where cat_cod = '{catCode}'";
             var cmd = new OleDbCommand(sql, _conn);
             var dr = cmd.ExecuteReader();
             var cat = new Catalogue();
@@ -189,6 +189,7 @@ namespace ePerPartsListGenerator.Repository
             {
                 cat.MakeCode = dr.GetString(0);
                 cat.Description = dr.GetString(1);
+                cat.Make = dr.GetString(3);
                 cat.ImageBytes = GetImageForCatalogue(dr.GetString(2));
             }
 
@@ -203,7 +204,7 @@ namespace ePerPartsListGenerator.Repository
                 " SELECT DRAWINGS.DRW_NUM, SGRP_COD, SGS_COD " +
                 "FROM DRAWINGS " +
                 $"WHERE CAT_COD = @P1 AND GRP_COD = @P2 AND SGRP_COD = @P3 AND SGS_COD = @P4 " +
-                "ORDER BY SGS_COD, DRAWINGS.DRW_NUM";
+                "ORDER BY SGRP_COD, SGS_COD, DRAWINGS.DRW_NUM";
             var cmd = new OleDbCommand(sql, _conn);
             cmd.Parameters.AddWithValue("@P1", catalogue.CatCode);
             cmd.Parameters.AddWithValue("@P2", group.Code);

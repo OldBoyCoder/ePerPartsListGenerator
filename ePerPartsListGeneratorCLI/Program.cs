@@ -32,49 +32,31 @@ namespace ePerPartsListGeneratorCLI
     {
         private static void Main()
         {
-            var html = "<html>";
-            var repository = new AccessRelease84Repository("3", @"C:\ePer installs\Release 84");
-            var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository);
-            var cats = pdfGen.GetAllCatalogues();
-            var lastMake = "";
-            var lastModel = "";
-            var stream = pdfGen.CreatePartsListPdf("PK"); //2J
-            var fileName = $"c:\\temp\\parts_PK_84.pdf";
+            var repository20 = new AccessRelease20Repository("3", @"C:\ePer installs\Release 20");
+            var flatFilegen = new ePerPartsListGenerator.FlatFileGenerator(repository20);
+            var stream = flatFilegen.CreatePartsListFlatFile("PK");
+            var fileName = $"c:\\temp\\parts_PK_20.tsv";
             using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 stream.CopyTo(file);
             }
-
-            //foreach (var cat in cats.OrderBy(x=>x.Make).ThenBy(x=>x.Model).ThenBy(x=>x.Description))
+            var repository84 = new AccessRelease84Repository("3", @"C:\ePer installs\Release 84");
+            flatFilegen = new ePerPartsListGenerator.FlatFileGenerator(repository84);
+            stream = flatFilegen.CreatePartsListFlatFile("PK");
+            fileName = $"c:\\temp\\parts_PK_84.tsv";
+            using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                stream.CopyTo(file);
+            }
+            return;
+            //var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository);
+            //stream = pdfGen.CreatePartsListPdf("PK"); //2J
+            //fileName = $"c:\\temp\\parts_PK_84.pdf";
+            //using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             //{
-            //    if (cat.Make != lastMake)
-            //    {
-            //        if (lastMake != "") html += "</details></details>";
-            //        html += $"<details><summary>{cat.Make}</summary><details><summary>{cat.Model}</summary>";
-            //        lastMake = cat.Make;
-            //        lastModel = cat.Model;
-            //    }
-            //    else
-            //    {
-            //        if (cat.Model != lastModel)
-            //        {
-            //            if (lastMake != "") html += "</details>";
-            //            html += $"<details><summary>{cat.Model}</summary>";
-            //            lastModel = cat.Model;
-            //        }
-            //    }
-
-            //    var fileName = $"c:\\temp\\parts_{cat.CatCode}.zip";
-            //    html += $"<p>{cat.Description} - <a href=\"{fileName}\">ZIP</a></p>";
-            //    Console.WriteLine($"{DateTime.Now}: {cat.Make} {cat.Model} {cat.Description} {cat.CatCode}");
-            //    var stream = pdfGen.CreatePartsListPdf(cat.CatCode); //2J
-            //    using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-            //    {
-            //        stream.CopyTo(file);
-            //    }
+            //    stream.CopyTo(file);
             //}
-            //html += "</details></details></html>";
-            //File.WriteAllText("c:\\temp\\summary.html", html);
+
         }
     }
 }

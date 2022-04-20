@@ -33,7 +33,7 @@ using PdfSharp.Pdf;
 
 namespace ePerPartsListGenerator.Render
 {
-    internal class CatalogueRendererLandscape
+    internal class CatalogueRendererToPdf
 
     {
         private readonly Catalogue _catalogue;
@@ -73,7 +73,7 @@ namespace ePerPartsListGenerator.Render
         private List<double> _contentWidths;
         private List<double> _partsListWidths;
 
-        internal CatalogueRendererLandscape(Catalogue catalogue)
+        internal CatalogueRendererToPdf(Catalogue catalogue)
         {
             _catalogue = catalogue;
         }
