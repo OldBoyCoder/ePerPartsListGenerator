@@ -39,6 +39,6 @@ a user needs to go through to use this code.
 The database structure changes between releases.  I have release 20 and 84 and have documented their structure on the
 following pages
 
-[Release 20 database structure](Release20Structure.md)
+[Release 20 database structure](Release20Structure.MD)
 
-[Release 84 database structure](Release84Structure.md)
+[Release 84 database structure](Release84Structure.MD)
