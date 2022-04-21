@@ -36,10 +36,10 @@ namespace ePerPartsListGenerator
         {
             Rep = rep;
         }
-        public Stream CreatePartsListPdf(string catalogueCode)
+        public Stream CreatePartsListPdf(string catalogueCode, bool documentPerSection)
         {
             var cat = Rep.GetCatalogue(catalogueCode);
-            var renderer = new CatalogueRendererToPdf(cat) {DocumentPerSection = false};
+            var renderer = new CatalogueRendererToPdf(cat) {DocumentPerSection = documentPerSection };
             renderer.StartDocument();
             return renderer.AddGroups(cat);
         }

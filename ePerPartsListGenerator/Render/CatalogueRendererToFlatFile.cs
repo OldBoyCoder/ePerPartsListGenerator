@@ -30,23 +30,30 @@ namespace ePerPartsListGenerator.Render
         {
             writer = new StreamWriter(stream);
             // Write catalogue entry
+            WriteLine("Line type", "Catalogue code", "Make code", "Make", "Catalogue description",
+                                "Group code", "Group description",
+                                "Full table code", "Table code", "Sub group code", "Table description",
+                                "Drawing number", "Drawing valid for", "Drawing modifications",
+                                "Part number", "Part description", "Part order in table", "Part quantity", "Part notes", "Part modification", "Part compatibility",
+                                "Part number", "Cliche description", "Cliche part number","Cliche part description", "Cliche order in table", "Cliche part quantity", "Cliche part notes", "Cliche part modification", "Cliche part compatibility");
             var catPrefix = WriteLine("CAT", cat.CatCode, cat.MakeCode, cat.Make, includeDescriptions ? cat.Description : "");
             foreach (var group in cat.Groups)
             {
                 var groupPrefix = WriteLine("GRP", catPrefix, group.Code, includeDescriptions ? group.Description : "");
                 foreach (var table in group.Tables.OrderBy(x => x.FullCode))
                 {
-                    var tablePrefix = WriteLine("TAB", groupPrefix, table.FullCode, group.Code, table.TableCode.ToString(), table.SubGroupCode.ToString(), includeDescriptions ? table.Description : "");
+                    var tablePrefix = WriteLine("TAB", groupPrefix, table.FullCode, table.TableCode.ToString(), table.SubGroupCode.ToString(), includeDescriptions ? table.Description : "");
                     foreach (var drawing in table.Drawings.OrderBy(x => x.DrawingNo))
                     {
-                        var drawingPrefix = WriteLine("DRW", tablePrefix, table.FullCode, drawing.DrawingNo.ToString(), drawing.ValidFor, drawing.Modifications);
+                        var drawingPrefix = WriteLine("DRW", tablePrefix, drawing.DrawingNo.ToString(), drawing.ValidFor, drawing.Modifications);
                         foreach (var part in drawing.Parts)
                         {
                             WriteLine("PRT", drawingPrefix, part.PartNo, includeDescriptions ? part.Description : "", part.Rif.ToString(), part.Qty.Trim(), includeDescriptions ? part.Notes : "", string.Join(",", part.Modification), string.Join(",", part.Compatibility));
                         }
                         foreach (var cliche in drawing.Cliches)
                         {
-                            var clichePrefix = WriteLine("CLC", drawingPrefix, cliche.PartNo, includeDescriptions ? cliche.Description : "");
+                            // add blanks for part columns
+                            var clichePrefix = WriteLine("CLC", drawingPrefix, "", "" ,"", "", "", "", "",cliche.PartNo, includeDescriptions ? cliche.Description : "");
                             foreach (var part in cliche.Parts)
                             {
                                 WriteLine("CLP", clichePrefix, part.PartNo, includeDescriptions ? part.Description : "", part.Rif.ToString(), part.Qty.Trim(), part.Notes, string.Join(",", part.Modification), string.Join(",", part.Compatibility));
@@ -66,8 +73,8 @@ namespace ePerPartsListGenerator.Render
 
         private string WriteLine(string lineType, params string[] values)
         {
-            var s = string.Join("|", values);
-            writer.WriteLine(lineType + "|" + s);
+            var s = string.Join("\t", values);
+            writer.WriteLine(lineType + "\t" + s);
             return s;
         }
     }

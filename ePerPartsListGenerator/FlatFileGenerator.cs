@@ -16,10 +16,10 @@ namespace ePerPartsListGenerator
         {
             Rep = rep;
         }
-        public Stream CreatePartsListFlatFile(string catalogueCode)
+        public Stream CreatePartsListFlatFile(string catalogueCode, bool includeDescriptions)
         {
             var cat = Rep.GetCatalogue(catalogueCode);
-            var renderer = new CatalogueRendererToFlatFile(cat, false) ;
+            var renderer = new CatalogueRendererToFlatFile(cat, includeDescriptions) ;
             renderer.StartDocument();
             return renderer.AddGroups(cat);
         }

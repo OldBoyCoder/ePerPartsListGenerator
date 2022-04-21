@@ -34,7 +34,7 @@ namespace ePerPartsListGeneratorCLI
         {
             var repository20 = new AccessRelease20Repository("3", @"C:\ePer installs\Release 20");
             var flatFilegen = new ePerPartsListGenerator.FlatFileGenerator(repository20);
-            var stream = flatFilegen.CreatePartsListFlatFile("PK");
+            var stream = flatFilegen.CreatePartsListFlatFile("PK", true);
             var fileName = $"c:\\temp\\parts_PK_20.tsv";
             using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
@@ -42,7 +42,7 @@ namespace ePerPartsListGeneratorCLI
             }
             var repository84 = new AccessRelease84Repository("3", @"C:\ePer installs\Release 84");
             flatFilegen = new ePerPartsListGenerator.FlatFileGenerator(repository84);
-            stream = flatFilegen.CreatePartsListFlatFile("PK");
+            stream = flatFilegen.CreatePartsListFlatFile("PK", true);
             fileName = $"c:\\temp\\parts_PK_84.tsv";
             using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
@@ -50,15 +50,27 @@ namespace ePerPartsListGeneratorCLI
             }
 
             var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository84);
-            stream = pdfGen.CreatePartsListPdf("PK"); //2J
+            stream = pdfGen.CreatePartsListPdf("PK", false); //2J
             fileName = $"c:\\temp\\parts_PK_84.pdf";
             using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 stream.CopyTo(file);
             }
+            stream = pdfGen.CreatePartsListPdf("PK", true); //2J
+            fileName = $"c:\\temp\\parts_PK_84.zip";
+            using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                stream.CopyTo(file);
+            }
             pdfGen = new ePerPartsListGenerator.PdfGenerator(repository20);
-            stream = pdfGen.CreatePartsListPdf("PK"); //2J
+            stream = pdfGen.CreatePartsListPdf("PK", false); //2J
             fileName = $"c:\\temp\\parts_PK_20.pdf";
+            using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                stream.CopyTo(file);
+            }
+            stream = pdfGen.CreatePartsListPdf("PK", true); //2J
+            fileName = $"c:\\temp\\parts_PK_20.zip";
             using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 stream.CopyTo(file);
