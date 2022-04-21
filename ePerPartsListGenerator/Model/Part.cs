@@ -37,7 +37,7 @@ namespace ePerPartsListGenerator.Model
         internal List<string> Compatibility;
         internal int Rif;
         internal string Notes;
-        internal string ClicheCode;
         internal string Sequence;
+        internal bool HasCliche;
     }
 }

@@ -48,14 +48,21 @@ namespace ePerPartsListGeneratorCLI
             {
                 stream.CopyTo(file);
             }
-            return;
-            //var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository);
-            //stream = pdfGen.CreatePartsListPdf("PK"); //2J
-            //fileName = $"c:\\temp\\parts_PK_84.pdf";
-            //using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-            //{
-            //    stream.CopyTo(file);
-            //}
+
+            var pdfGen = new ePerPartsListGenerator.PdfGenerator(repository84);
+            stream = pdfGen.CreatePartsListPdf("PK"); //2J
+            fileName = $"c:\\temp\\parts_PK_84.pdf";
+            using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                stream.CopyTo(file);
+            }
+            pdfGen = new ePerPartsListGenerator.PdfGenerator(repository20);
+            stream = pdfGen.CreatePartsListPdf("PK"); //2J
+            fileName = $"c:\\temp\\parts_PK_20.pdf";
+            using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                stream.CopyTo(file);
+            }
 
         }
     }

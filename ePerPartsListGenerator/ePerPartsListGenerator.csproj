@@ -97,7 +97,6 @@
     <Compile Include="Repository\AccessRelease84Repository.cs" />
     <Compile Include="Repository\IRepository.cs" />
     <Compile Include="Repository\AccessRelease20Repository.cs" />
-    <Compile Include="Repository\SqlServerRepository.cs" />
     <Compile Include="Model\Table.cs" />
   </ItemGroup>
   <ItemGroup>

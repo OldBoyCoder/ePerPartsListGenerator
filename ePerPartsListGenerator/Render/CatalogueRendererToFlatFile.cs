@@ -42,16 +42,16 @@ namespace ePerPartsListGenerator.Render
                         var drawingPrefix = WriteLine("DRW", tablePrefix, table.FullCode, drawing.DrawingNo.ToString(), drawing.ValidFor, drawing.Modifications);
                         foreach (var part in drawing.Parts)
                         {
-                            WriteLine("PRT", drawingPrefix, part.PartNo, includeDescriptions ? part.Description : "", part.Rif.ToString(), part.Qty.Trim(), part.Notes, part.Notes, string.Join(",", part.Modification), string.Join(",", part.Compatibility));
+                            WriteLine("PRT", drawingPrefix, part.PartNo, includeDescriptions ? part.Description : "", part.Rif.ToString(), part.Qty.Trim(), includeDescriptions ? part.Notes : "", string.Join(",", part.Modification), string.Join(",", part.Compatibility));
                         }
-                        foreach (var cliche in drawing.Cliches.OrderBy(x => x.Value.PartNo))
+                        foreach (var cliche in drawing.Cliches)
                         {
-                            var clichePrefix = WriteLine("CLC", drawingPrefix, cliche.Value.PartNo, includeDescriptions ? cliche.Value.Description : "");
-                            //  foreach (var part in cliche.Value.Parts.OrderBy(x=>x.Rif))
-                            //  {
-                            //      WriteLine("CLP", clichePrefix, part.PartNo, includeDescriptions ? part.Description : "", part.Rif.ToString(), part.Qty.Trim(), part.Notes, part.Notes, string.Join(",", part.Modification), string.Join(",", part.Compatibility));
+                            var clichePrefix = WriteLine("CLC", drawingPrefix, cliche.PartNo, includeDescriptions ? cliche.Description : "");
+                            foreach (var part in cliche.Parts)
+                            {
+                                WriteLine("CLP", clichePrefix, part.PartNo, includeDescriptions ? part.Description : "", part.Rif.ToString(), part.Qty.Trim(), part.Notes, string.Join(",", part.Modification), string.Join(",", part.Compatibility));
 
-                            //}
+                            }
                         }
                     }
                 }
@@ -66,8 +66,8 @@ namespace ePerPartsListGenerator.Render
 
         private string WriteLine(string lineType, params string[] values)
         {
-            var s = string.Join("\t", values);
-            writer.WriteLine(lineType + "\t" + s);
+            var s = string.Join("|", values);
+            writer.WriteLine(lineType + "|" + s);
             return s;
         }
     }

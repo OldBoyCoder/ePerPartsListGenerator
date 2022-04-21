@@ -254,17 +254,7 @@ namespace ePerPartsListGenerator.Repository
                     }
 
                     p.Notes = dr.GetString(6);
-                    string imagePath;
-                    p.ClicheCode = GetClicheCodeForPart(p.PartNo, out imagePath);
-                    if (p.ClicheCode != "")
-                    {
-                        if (!d.Cliches.ContainsKey(p.PartNo))
-                            d.Cliches.Add(p.PartNo, new Cliche(p.ClicheCode));
-                        d.Cliches[p.PartNo].PartNo = p.PartNo;
-                        d.Cliches[p.PartNo].Description = p.Description;
-                        d.Cliches[p.PartNo].ImageStream = GetImage(imagePath);
-                    }
-
+                    GetClicheCodesForPart(d, p);
                     d.Parts.Add(p);
                 }
 
@@ -273,22 +263,30 @@ namespace ePerPartsListGenerator.Repository
 
             PopulateCliches(d, catCode);
         }
-        private string GetClicheCodeForPart(string partCode, out string imagePath)
+        private void GetClicheCodesForPart(Drawing d, Part p)
         {
-            var sql = $"SELECT CLH_COD, IMG_PATH FROM [CLICHE] CL WHERE CL.CPLX_PRT_COD = '{partCode}'";
+            var sql = $"SELECT CLH_COD, IMG_PATH, CPD_NUM FROM [CLICHE] CL WHERE CL.CPLX_PRT_COD = '{p.PartNo}' order by  CPD_NUM";
             using (var cmd = new OleDbCommand(sql, _conn))
             {
                 using (var dr = cmd.ExecuteReader())
                 {
-                    if (dr.Read())
+                    while (dr.Read())
                     {
-                        imagePath = dr.GetString(1);
-                        return dr.GetString(0);
+                        var clicheCode = Int32.Parse(dr.GetString(0));
+                        var cliche = d.Cliches.FirstOrDefault(x => x.ClicheCode == clicheCode  && x.PartNo == p.PartNo);
+                        if (cliche == null)
+                        {
+                            cliche = new Cliche(clicheCode);
+                            d.Cliches.Add(cliche);
+                            cliche.PartNo = p.PartNo;
+                            cliche.Description = p.Description;
+                            cliche.ImageStream = GetImage(dr.GetString(1));
+                            cliche.CpdNum = dr.GetInt16(2);
+                        }
+
                     }
                 }
             }
-            imagePath = "";
-            return "";
         }
         private void PopulateCliches(Drawing d, string catCode)
         {
@@ -300,10 +298,10 @@ namespace ePerPartsListGenerator.Repository
                     $"from ((CPXDATA D INNER JOIN CODES_DSC C ON (C.CDS_COD = D.PRT_CDS_COD AND C.LNG_COD = '{_languageCode}')) " +
                     $"LEFT OUTER JOIN DESC_AGG_DSC DAD ON (DAD.COD = D.CPD_AGG_DSC AND DAD.LNG_COD = '{_languageCode}'))  " +
                     $"LEFT OUTER JOIN [NOTES_DSC] NTS ON (NTS.NTS_COD = D.NTS_COD AND NTS.LNG_COD = '{_languageCode}')  " +
-                    $"where D.CPLX_PRT_COD = '{item.Key}' AND D.CLH_COD = {item.Value.ClicheCode}  order by CpD_RIF, CPD_RIF_SEQ";
+                    $"where D.CLH_COD = {item.ClicheCode} AND D.CPD_NUM = {item.CpdNum} AND D.CPLX_PRT_COD = '{item.PartNo}'  order by CpD_RIF, CPD_RIF_SEQ";
                 var cmd = new OleDbCommand(sql, _conn);
                 var dr = cmd.ExecuteReader();
-                item.Value.Parts = new List<Part>();
+                item.Parts = new List<Part>();
                 while (dr.Read())
                 {
                     var p = new Part { Description = dr.GetString(2), Modification = new List<string>() };
@@ -334,16 +332,15 @@ namespace ePerPartsListGenerator.Repository
                     }
 
                     p.Notes = dr.GetString(6);
-                    p.ClicheCode = "";
-                    item.Value.Parts.Add(p);
+                    item.Parts.Add(p);
                 }
 
                 dr.Close();
-                var starterRif = item.Value.Parts.Max(x => x.Rif) + 1;
+                var starterRif = item.Parts.Max(x => x.Rif) + 1;
                 // Now see if there are any KIT entries for this cliche
                 sql = "select TBD_RIF, PRT_COD, C.CDS_DSC, '','01', '', '', '' " +
                       $"from KIT D INNER JOIN CODES_DSC C ON (C.CDS_COD = D.CDS_COD AND LNG_COD = '{_languageCode}') " +
-                      $"where D.CPLX_PRT_COD = '{item.Key}' AND CAT_COD = '{catCode}' order by TBD_RIF";
+                      $"where D.CPLX_PRT_COD = '{item.PartNo}' AND CAT_COD = '{catCode}' order by TBD_RIF";
                 cmd = new OleDbCommand(sql, _conn);
                 dr = cmd.ExecuteReader();
                 while (dr.Read())
@@ -357,9 +354,8 @@ namespace ePerPartsListGenerator.Repository
                         Rif = starterRif++,
                         Compatibility = new List<string>(),
                         Notes = dr.GetString(6),
-                        ClicheCode = ""
                     };
-                    item.Value.Parts.Add(p);
+                    item.Parts.Add(p);
                 }
 
                 dr.Close();

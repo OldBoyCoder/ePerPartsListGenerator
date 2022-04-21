@@ -288,7 +288,7 @@ namespace ePerPartsListGenerator.Render
             {
                 p.Rif.ToString(), p.PartNo, p.Description,
                 string.Join(", ", p.Modification), string.Join(", ", p.Compatibility), p.Notes, p.Qty,
-                p.ClicheCode != "" ? "*" : ""
+                p.HasCliche ? "*" : ""
             };
             var drawItems = FitTableItemsIntoColumns(_partsListWidths, fields, _tableFont);
             return drawItems;
@@ -299,7 +299,7 @@ namespace ePerPartsListGenerator.Render
             var h = _tableFont.Height(_gfx);
             h += h / 8;
 
-            foreach (var cliche in drawing.Cliches.Values)
+            foreach (var cliche in drawing.Cliches)
             {
                 var y = StartNewClichePage(group, table, drawing, cliche);
                 var gray = true;

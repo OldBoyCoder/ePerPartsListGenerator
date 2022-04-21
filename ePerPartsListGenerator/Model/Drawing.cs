@@ -48,7 +48,7 @@ namespace ePerPartsListGenerator.Model
         /// <summary>
         /// A list of any parts that have further expansion available.
         /// </summary>
-        internal readonly Dictionary<string, Cliche> Cliches = new Dictionary<string, Cliche>();
+        internal readonly List<Cliche> Cliches = new List<Cliche> ();
 
         internal short SgsCode;
 
