@@ -3,7 +3,7 @@
 Command line utility to generate a parts list PDF for vehicles covered by the ePer databases.
 
 This code is used to read data for a particular model of car covered by Fiat's ePer database and
-render it as a PDF file for viewing or printing.
+render it as a PDF file for viewing or printin or as a tab delimited file for loading into a spreadsheet program.
 
 The data is not available here, only the code.  The data is Copyright(c) Fiat Group Automobiles.
 
@@ -33,6 +33,35 @@ simple task using SSMA.
 
 In the current release of this project I read the data from the Access database directly as this reduces the steps
 a user needs to go through to use this code.
+
+## Understanding the ePer hierarchy
+
+Across the two releases I have examined the following hierarchy is evident when looking at the data
+
+The `MAKES` table lists all the car makes covered by the database.  Using column `MK_COD` from this table allows one to find:
+
+The `CATALOGUES` table lists all the catalogues of parts in the database.  Column `CAT_COD` can then be used to find:
+
+The `GROUPS` table which lists the major grouping of parts in the database.  The groups are identified by a three digit number which
+can be seen in ePer as the the column `GRP_COD`
+
+A `SUBGROUPS_DSC` table which lists the sub-groups for a group.  The subgroup is identified by the column `SGRP_COD` from where you can get to the drawings for the sub group
+
+The `DRAWINGS` table has a compound key of `CAT_COD`, `GRP_COD`, `SGRP_COD`, `SGS_COD` and `DRW_NUM`.  `SGS_COD` is a 
+further breakdown of subgroup, it is typically used for when a drawing is much changed between revisions of the car
+`DRW_NUM` identifies the number of drawing.
+
+Consider the code 10222/01
+- 102 - The group code indicating 'Fuel end exhaust systems'
+- 22 - The sub-group code indicating 'Accelerator control linkage'
+- 00 - The sub-sub-group code indicating the sub group for the 'M1' engine
+
+Within a drawing there will be a list of parts.  For some parts there is a further diagram breaking down that part further.
+Thes efurther breakdowns are known as `CLICHES` in the database.  A cliche may well be shared between different vehicles
+and so is known by the part number it expands.
+
+As well as parts a drawing may also include `KIT`s these are where a set of parts are available to buy together.
+You will see this most often for brake service kits.
 
 ## Releases
 

@@ -1,10 +1,13 @@
-## Database information
+# Release 84 database structure 
 
-The ePer system uses an MS-Access database to hold information about the parts drawings.  
-For the sake of my sanity I moved this to a SQL Server DB.  The SQL queries are all centralised in one file
-so can easily be changed to use a different DBMS if required.
+Release 84 is the last version of ePer available as a standalone DVD.
 
-https://www.microsoft.com/en-us/download/details.aspx?id=54255
+The main access database is `data\SP.DB.04210.FCTLR`
+
+## Images
+
+Images in release 84 are held in `RES` files.  These files are simply ZIP files and can be opened with any tool
+that can handle ZIPs.  
 
 ## Hierarchy of a drawing
 
